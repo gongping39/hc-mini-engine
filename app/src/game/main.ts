@@ -3,7 +3,7 @@ import { PreloadScene } from './scenes/PreloadScene';
 import { GameScene } from './scenes/GameScene';
 import { UIScene } from './scenes/UIScene';
 import { loadDSL } from '../dsl/loader';
-import { setDSL } from './dslRuntime';
+import { setDSL, setGameInstance } from './dslRuntime';
 
 export function setSeededRandom(seed: number): void {
   Math.random = (() => {
@@ -19,20 +19,35 @@ export function setSeededRandom(seed: number): void {
 const dsl = loadDSL();
 setDSL(dsl);
 
-const config: Types.Core.GameConfig = {
-  type: Phaser.AUTO,
-  width: 800,
-  height: 600,
-  parent: 'game-root',
-  backgroundColor: '#2c3e50',
-  physics: {
-    default: 'arcade',
-    arcade: {
-      gravity: { x: 0, y: dsl.gravityY },
-      debug: false
-    }
-  },
-  scene: [PreloadScene, GameScene, UIScene]
+const createConfig = (): Types.Core.GameConfig => {
+  const currentDsl = loadDSL();
+  return {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    parent: 'game-root',
+    backgroundColor: '#2c3e50',
+    physics: {
+      default: 'arcade',
+      arcade: {
+        gravity: { x: 0, y: currentDsl.gravityY },
+        debug: false
+      }
+    },
+    scene: [PreloadScene, GameScene, UIScene]
+  };
 };
 
+const config = createConfig();
+
 export const game = new Game(config);
+
+// Register game instance for runtime DSL updates
+setGameInstance(game);
+console.log('Game instance registered for DSL updates');
+
+// Cleanup on window unload
+window.addEventListener('beforeunload', () => {
+  setGameInstance(null);
+  game.destroy(true);
+});

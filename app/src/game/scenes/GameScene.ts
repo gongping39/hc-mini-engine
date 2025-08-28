@@ -21,6 +21,12 @@ export class GameScene extends Scene {
     const W = this.scale.width;
     const H = this.scale.height;
     const dsl = getDSL();
+    console.log('GameScene create - DSL gravity:', dsl.gravityY);
+    console.log('GameScene create - Physics world gravity (before):', this.physics.world.gravity.y);
+    
+    // DSL値で物理エンジンの重力を強制的に更新
+    this.physics.world.gravity.y = dsl.gravityY;
+    console.log('GameScene create - Physics world gravity (after):', this.physics.world.gravity.y);
 
     // ground（画面下端）
     const groundH = 80;
@@ -138,7 +144,13 @@ export class GameScene extends Scene {
 
     // 画面外落下
     if (this.player.y > this.scale.height + 100 || this.player.y < dsl.loseBelowY) {
+      console.log(`Game Over! Player Y: ${this.player.y}, Lose Below Y: ${dsl.loseBelowY}`);
       this.gameOver();
+    }
+    
+    // デバッグ：プレイヤーの位置を表示
+    if (Math.floor(this.score * 10) % 10 === 0) { // 0.1秒ごと
+      console.log(`Player position - Y: ${Math.floor(this.player.y)}, Lose limit: ${dsl.loseBelowY}`);
     }
   }
 
