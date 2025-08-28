@@ -1,0 +1,5 @@
+gravityY: 1400
+playerJump: -460
+spawnIntervalMs: 950
+obstacleSpeed: 260
+loseBelowY: -200
