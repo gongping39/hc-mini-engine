@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
-import { getDSL } from '../dslRuntime';
+import { getDSL, getSeed } from '../dslRuntime';
+import { makeRng, type RNG } from '../random';
 
 type RectGO = Phaser.GameObjects.Rectangle & {
   body: Phaser.Physics.Arcade.Body;
@@ -12,6 +13,7 @@ export class GameScene extends Scene {
   private spawnEvent?: Phaser.Time.TimerEvent;
   private isGameOver = false;
   private score = 0;
+  private rng!: RNG;
 
   constructor() { 
     super({ key: 'GameScene' }); 
@@ -21,7 +23,13 @@ export class GameScene extends Scene {
     const W = this.scale.width;
     const H = this.scale.height;
     const dsl = getDSL();
+    const seed = getSeed();
+    
+    // Initialize RNG with seed
+    this.rng = makeRng(seed);
+    
     console.log('GameScene create - DSL gravity:', dsl.gravityY);
+    console.log('GameScene create - Seed:', seed);
     console.log('GameScene create - Physics world gravity (before):', this.physics.world.gravity.y);
     
     // DSL値で物理エンジンの重力を強制的に更新
@@ -88,7 +96,7 @@ export class GameScene extends Scene {
     const groundY = H - groundH / 2;
     const dsl = getDSL();
 
-    const size = Phaser.Math.Between(24, 56);
+    const size = this.rng.nextInt(24, 56);
     const y = groundY - groundH / 2 - size / 2; // 地面の上面に配置
 
     const spawnX = W + 20; // 画面右端から少し外に
@@ -160,7 +168,23 @@ export class GameScene extends Scene {
     this.spawnEvent?.remove(false);
     this.obstacles.setVelocityX(0);
     this.player.body.setVelocity(0, 0);
+    
+    const finalScore = Math.floor(this.score);
+    
+    // High score management
+    const storageKey = 'hc-mini:highScore';
+    const currentBest = parseInt(localStorage.getItem(storageKey) || '0', 10);
+    let isNewBest = false;
+    
+    if (finalScore > currentBest) {
+      localStorage.setItem(storageKey, finalScore.toString());
+      isNewBest = true;
+    }
+    
     this.registry.set('gameOver', true);
+    this.registry.set('finalScore', finalScore);
+    this.registry.set('highScore', Math.max(finalScore, currentBest));
+    this.registry.set('isNewBest', isNewBest);
     
     // リスタート処理をUISceneに任せる
     this.registry.events.once('restart-game', () => {

@@ -3,6 +3,7 @@ import type { Game } from 'phaser';
 
 let current: GameDSL;
 let gameInstance: Game | null = null;
+let currentSeed: number = 0;
 
 export function setDSL(dsl: GameDSL): void {
   current = dsl;
@@ -21,6 +22,14 @@ export function isDSLInitialized(): boolean {
 
 export function setGameInstance(game: Game | null): void {
   gameInstance = game;
+}
+
+export function setSeed(seed: number): void {
+  currentSeed = seed;
+}
+
+export function getSeed(): number {
+  return currentSeed;
 }
 
 export function applyDslPatch(patch: Partial<GameDSL>): void {

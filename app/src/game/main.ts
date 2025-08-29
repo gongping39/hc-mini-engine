@@ -3,7 +3,7 @@ import { PreloadScene } from './scenes/PreloadScene';
 import { GameScene } from './scenes/GameScene';
 import { UIScene } from './scenes/UIScene';
 import { loadDSL } from '../dsl/loader';
-import { setDSL, setGameInstance } from './dslRuntime';
+import { setDSL, setGameInstance, setSeed } from './dslRuntime';
 
 export function setSeededRandom(seed: number): void {
   Math.random = (() => {
@@ -15,9 +15,17 @@ export function setSeededRandom(seed: number): void {
   })();
 }
 
+// Parse URL parameters for seed
+const urlParams = new URLSearchParams(window.location.search);
+const seedParam = urlParams.get('seed');
+const seed = seedParam ? parseInt(seedParam, 10) : Date.now();
+
 // DSL設定を読み込み
 const dsl = loadDSL();
 setDSL(dsl);
+setSeed(seed);
+
+console.log('Game initialized with seed:', seed);
 
 const createConfig = (): Types.Core.GameConfig => {
   const currentDsl = loadDSL();
