@@ -9,6 +9,7 @@ interface InspectorProps {
 
 export function Inspector({ visible }: InspectorProps) {
   const [dsl, setDsl] = useState<GameDSL | null>(null);
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
     // DSLが初期化されるまで待つ
@@ -17,6 +18,14 @@ export function Inspector({ visible }: InspectorProps) {
         try {
           const currentDsl = getDSL();
           setDsl(currentDsl);
+          // Initialize input values from DSL
+          setInputValues({
+            gravityY: currentDsl.gravityY.toString(),
+            playerJump: currentDsl.playerJump.toString(),
+            spawnIntervalMs: currentDsl.spawnIntervalMs.toString(),
+            obstacleSpeed: currentDsl.obstacleSpeed.toString(),
+            loseBelowY: currentDsl.loseBelowY.toString(),
+          });
           return true;
         } catch (error) {
           console.error('Error getting DSL:', error);
@@ -41,12 +50,22 @@ export function Inspector({ visible }: InspectorProps) {
     }
   }, []);
 
-  const handleChange = (field: keyof GameDSL, value: number) => {
+  const handleInputChange = (field: keyof GameDSL, inputValue: string) => {
     if (!dsl) return;
-    console.log(`Inspector: Changing ${field} from ${dsl[field]} to ${value}`);
-    const newDsl = { ...dsl, [field]: value };
-    setDsl(newDsl);
-    applyDslPatch({ [field]: value });
+    
+    // Update input value state to preserve user's input (including empty string, minus sign, etc.)
+    setInputValues(prev => ({ ...prev, [field]: inputValue }));
+    
+    // Parse the number for DSL updates
+    const numValue = parseFloat(inputValue);
+    
+    // Only update DSL if the parsed value is a valid number
+    if (!isNaN(numValue)) {
+      console.log(`Inspector: Changing ${field} from ${dsl[field]} to ${numValue}`);
+      const newDsl = { ...dsl, [field]: numValue };
+      setDsl(newDsl);
+      applyDslPatch({ [field]: numValue });
+    }
   };
 
   const exportToClipboard = async () => {
@@ -84,9 +103,10 @@ export function Inspector({ visible }: InspectorProps) {
         <label>
           Gravity Y:
           <input
-            type="number"
-            value={dsl.gravityY}
-            onChange={(e) => handleChange('gravityY', Number(e.target.value))}
+            type="text"
+            value={inputValues.gravityY || ''}
+            onChange={(e) => handleInputChange('gravityY', e.target.value)}
+            placeholder="Enter number..."
             style={{ width: '100%', marginLeft: 8, padding: 2 }}
           />
         </label>
@@ -94,9 +114,10 @@ export function Inspector({ visible }: InspectorProps) {
         <label>
           Player Jump:
           <input
-            type="number"
-            value={dsl.playerJump}
-            onChange={(e) => handleChange('playerJump', Number(e.target.value))}
+            type="text"
+            value={inputValues.playerJump || ''}
+            onChange={(e) => handleInputChange('playerJump', e.target.value)}
+            placeholder="Enter number..."
             style={{ width: '100%', marginLeft: 8, padding: 2 }}
           />
         </label>
@@ -104,9 +125,10 @@ export function Inspector({ visible }: InspectorProps) {
         <label>
           Spawn Interval (ms):
           <input
-            type="number"
-            value={dsl.spawnIntervalMs}
-            onChange={(e) => handleChange('spawnIntervalMs', Number(e.target.value))}
+            type="text"
+            value={inputValues.spawnIntervalMs || ''}
+            onChange={(e) => handleInputChange('spawnIntervalMs', e.target.value)}
+            placeholder="Enter number..."
             style={{ width: '100%', marginLeft: 8, padding: 2 }}
           />
         </label>
@@ -114,9 +136,10 @@ export function Inspector({ visible }: InspectorProps) {
         <label>
           Obstacle Speed:
           <input
-            type="number"
-            value={dsl.obstacleSpeed}
-            onChange={(e) => handleChange('obstacleSpeed', Number(e.target.value))}
+            type="text"
+            value={inputValues.obstacleSpeed || ''}
+            onChange={(e) => handleInputChange('obstacleSpeed', e.target.value)}
+            placeholder="Enter number..."
             style={{ width: '100%', marginLeft: 8, padding: 2 }}
           />
         </label>
@@ -124,9 +147,10 @@ export function Inspector({ visible }: InspectorProps) {
         <label>
           Lose Below Y:
           <input
-            type="number"
-            value={dsl.loseBelowY}
-            onChange={(e) => handleChange('loseBelowY', Number(e.target.value))}
+            type="text"
+            value={inputValues.loseBelowY || ''}
+            onChange={(e) => handleInputChange('loseBelowY', e.target.value)}
+            placeholder="Enter number..."
             style={{ width: '100%', marginLeft: 8, padding: 2 }}
           />
         </label>

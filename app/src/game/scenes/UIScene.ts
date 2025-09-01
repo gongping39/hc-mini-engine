@@ -94,7 +94,7 @@ export class UIScene extends Scene {
     this.toastText.setVisible(false);
 
     // Click to restart
-    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
+    this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
       if (this.registry.get('gameOver') && !currentlyOver.includes(this.shareButton)) {
         this.registry.events.emit('restart-game');
         this.hideGameOverScreen();
@@ -151,7 +151,7 @@ export class UIScene extends Scene {
       const isNewBest = this.registry.get('isNewBest') || false;
 
       this.gameOverText.setVisible(true);
-      this.highScoreText.setText(`High Score: ${highScore}s`);
+      this.highScoreText.setText(`High Score: ${highScore}s (Last: ${finalScore}s)`);
       this.highScoreText.setVisible(true);
       
       if (isNewBest) {
