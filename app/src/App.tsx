@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Inspector } from './ui/Inspector';
+import { sfx } from './audio/sfx';
 import './App.css';
 
 function App() {
   const [inspectorVisible, setInspectorVisible] = useState(true);
 
   useEffect(() => {
+    // Prime audio for mobile unlock
+    sfx.prime();
+
     // Import and initialize game
     import('./game/main');
 

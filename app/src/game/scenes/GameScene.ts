@@ -1,6 +1,7 @@
 import { Scene } from 'phaser';
 import { getDSL, getSeed } from '../dslRuntime';
 import { makeRng, type RNG } from '../random';
+import { sfx } from '../../audio/sfx';
 
 type RectGO = Phaser.GameObjects.Rectangle & {
   body: Phaser.Physics.Arcade.Body;
@@ -84,6 +85,7 @@ export class GameScene extends Scene {
     const body = this.player.body;
     if (body.blocked.down || body.touching.down) {
       body.setVelocityY(dsl.playerJump);
+      sfx.playJump();
     }
   }
 
@@ -165,6 +167,8 @@ export class GameScene extends Scene {
   private gameOver(): void {
     if (this.isGameOver) return;
     this.isGameOver = true;
+    sfx.playCrash();
+    
     this.spawnEvent?.remove(false);
     this.obstacles.setVelocityX(0);
     this.player.body.setVelocity(0, 0);

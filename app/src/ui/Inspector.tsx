@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { stringify } from 'yaml';
 import type { GameDSL } from '../dsl/schema';
 import { getDSL, applyDslPatch, isDSLInitialized } from '../game/dslRuntime';
+import { sfx } from '../audio/sfx';
 
 interface InspectorProps {
   visible: boolean;
@@ -154,6 +155,25 @@ export function Inspector({ visible }: InspectorProps) {
             style={{ width: '100%', marginLeft: 8, padding: 2 }}
           />
         </label>
+
+        <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: 8 }}>
+          <div style={{ marginBottom: 4, fontSize: 11, fontWeight: 'bold' }}>Audio</div>
+          <label style={{ fontSize: 10 }}>
+            Volume:
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={sfx.getVolume()}
+              onChange={(e) => sfx.setVolume(parseFloat(e.target.value))}
+              style={{ width: 160, marginLeft: 8 }}
+            />
+            <span style={{ marginLeft: 4, fontSize: 9 }}>
+              {Math.round(sfx.getVolume() * 100)}%
+            </span>
+          </label>
+        </div>
 
         <button
           onClick={exportToClipboard}
