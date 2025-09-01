@@ -1,15 +1,72 @@
+interface SfxSettings {
+  volume: number;
+  mute: boolean;
+}
+
 class SfxManager {
   private audioContext: AudioContext | null = null;
   private masterGain: GainNode | null = null;
-  private volume = 0.5;
+  private volume = 0.6;
+  private mute = false;
   private primed = false;
+  private visibilityMuted = false;
+  private storageKey = 'hc-mini:sfx';
+
+  constructor() {
+    this.loadSettings();
+    this.setupVisibilityHandling();
+  }
+
+  private loadSettings(): void {
+    try {
+      const saved = localStorage.getItem(this.storageKey);
+      if (saved) {
+        const settings: SfxSettings = JSON.parse(saved);
+        this.volume = Math.max(0, Math.min(1, settings.volume || 0.6));
+        this.mute = Boolean(settings.mute);
+      }
+    } catch (error) {
+      console.warn('Failed to load SFX settings:', error);
+    }
+  }
+
+  private saveSettings(): void {
+    try {
+      const settings: SfxSettings = {
+        volume: this.volume,
+        mute: this.mute
+      };
+      localStorage.setItem(this.storageKey, JSON.stringify(settings));
+    } catch (error) {
+      console.warn('Failed to save SFX settings:', error);
+    }
+  }
+
+  private setupVisibilityHandling(): void {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        this.visibilityMuted = true;
+        this.updateMasterVolume();
+      } else {
+        this.visibilityMuted = false;
+        this.updateMasterVolume();
+      }
+    });
+  }
 
   private ensure(): void {
     if (!this.audioContext) {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       this.masterGain = this.audioContext.createGain();
       this.masterGain.connect(this.audioContext.destination);
-      this.masterGain.gain.value = this.volume;
+      this.updateMasterVolume();
+    }
+  }
+
+  private updateMasterVolume(): void {
+    if (this.masterGain) {
+      const effectiveVolume = (this.mute || this.visibilityMuted) ? 0 : this.volume;
+      this.masterGain.gain.value = effectiveVolume;
     }
   }
 
@@ -111,13 +168,36 @@ class SfxManager {
 
   setVolume(volume: number): void {
     this.volume = Math.max(0, Math.min(1, volume));
-    if (this.masterGain) {
-      this.masterGain.gain.value = this.volume;
-    }
+    this.updateMasterVolume();
+    this.saveSettings();
   }
 
   getVolume(): number {
     return this.volume;
+  }
+
+  toggleMute(): void {
+    this.mute = !this.mute;
+    this.updateMasterVolume();
+    this.saveSettings();
+  }
+
+  isMuted(): boolean {
+    return this.mute;
+  }
+
+  setMute(mute: boolean): void {
+    this.mute = mute;
+    this.updateMasterVolume();
+    this.saveSettings();
+  }
+
+  testJump(): void {
+    this.playJump();
+  }
+
+  testCrash(): void {
+    this.playCrash();
   }
 }
 

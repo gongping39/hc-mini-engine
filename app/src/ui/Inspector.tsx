@@ -158,7 +158,18 @@ export function Inspector({ visible }: InspectorProps) {
 
         <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: 8 }}>
           <div style={{ marginBottom: 4, fontSize: 11, fontWeight: 'bold' }}>Audio</div>
-          <label style={{ fontSize: 10 }}>
+          
+          <label style={{ fontSize: 10, display: 'block', marginBottom: 6 }}>
+            <input
+              type="checkbox"
+              checked={sfx.isMuted()}
+              onChange={(e) => sfx.setMute(e.target.checked)}
+              style={{ marginRight: 4 }}
+            />
+            Mute
+          </label>
+          
+          <label style={{ fontSize: 10, display: 'block', marginBottom: 6 }}>
             Volume:
             <input
               type="range"
@@ -167,12 +178,44 @@ export function Inspector({ visible }: InspectorProps) {
               step={0.01}
               value={sfx.getVolume()}
               onChange={(e) => sfx.setVolume(parseFloat(e.target.value))}
-              style={{ width: 160, marginLeft: 8 }}
+              style={{ width: 140, marginLeft: 8 }}
+              disabled={sfx.isMuted()}
             />
             <span style={{ marginLeft: 4, fontSize: 9 }}>
               {Math.round(sfx.getVolume() * 100)}%
             </span>
           </label>
+
+          <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+            <button
+              onClick={() => sfx.testJump()}
+              style={{
+                padding: '2px 6px',
+                fontSize: 9,
+                backgroundColor: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: 3,
+                cursor: 'pointer'
+              }}
+            >
+              Test Jump
+            </button>
+            <button
+              onClick={() => sfx.testCrash()}
+              style={{
+                padding: '2px 6px',
+                fontSize: 9,
+                backgroundColor: '#dc3545',
+                color: 'white',
+                border: 'none',
+                borderRadius: 3,
+                cursor: 'pointer'
+              }}
+            >
+              Test Crash
+            </button>
+          </div>
         </div>
 
         <button

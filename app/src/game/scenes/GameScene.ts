@@ -62,6 +62,7 @@ export class GameScene extends Scene {
     this.physics.add.collider(this.player, this.ground);
     this.physics.add.overlap(this.player, this.obstacles, () => this.gameOver());
     this.input.keyboard?.on('keydown-SPACE', () => this.tryJump());
+    this.input.keyboard?.on('keydown-M', () => sfx.toggleMute());
     this.input.on('pointerdown', () => this.tryJump());
 
     // スポーン
