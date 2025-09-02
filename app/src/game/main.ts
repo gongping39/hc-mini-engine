@@ -3,7 +3,8 @@ import { PreloadScene } from './scenes/PreloadScene';
 import { GameScene } from './scenes/GameScene';
 import { UIScene } from './scenes/UIScene';
 import { loadDSL } from '../dsl/loader';
-import { setDSL, setGameInstance, setSeed } from './dslRuntime';
+import { setDSL, setGameInstance, setSeed, getDSL } from './dslRuntime';
+import { applySpec } from '../runtime/applySpec';
 
 export function setSeededRandom(seed: number): void {
   Math.random = (() => {
@@ -15,20 +16,41 @@ export function setSeededRandom(seed: number): void {
   })();
 }
 
-// Parse URL parameters for seed
+// Parse URL parameters
 const urlParams = new URLSearchParams(window.location.search);
 const seedParam = urlParams.get('seed');
+const specParam = urlParams.get('spec');
 const seed = seedParam ? parseInt(seedParam, 10) : Date.now();
 
-// DSL設定を読み込み
-const dsl = loadDSL();
-setDSL(dsl);
-setSeed(seed);
+// Initialize game configuration
+async function initializeGame() {
+  if (specParam === 'example') {
+    try {
+      // Import and apply example spec
+      const exampleSpec = await import('../schema/example.json');
+      const spec = exampleSpec.default as import('../schema/types').GameSpec;
+      applySpec(spec);
+      console.log('Game initialized with example spec and seed:', seed);
+    } catch (error) {
+      console.error('Failed to load example spec, falling back to DSL:', error);
+      const dsl = loadDSL();
+      setDSL(dsl);
+    }
+  } else {
+    // Use traditional DSL configuration
+    const dsl = loadDSL();
+    setDSL(dsl);
+    console.log('Game initialized with DSL and seed:', seed);
+  }
+  
+  setSeed(seed);
+}
 
-console.log('Game initialized with seed:', seed);
+// Initialize before creating game
+await initializeGame();
 
 const createConfig = (): Types.Core.GameConfig => {
-  const currentDsl = loadDSL();
+  const currentDsl = getDSL();
   return {
     type: Phaser.AUTO,
     width: 800,

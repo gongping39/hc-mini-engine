@@ -1,0 +1,25 @@
+{
+  "title": "Spec Runner Example",
+  "gameLoop": "runner",
+  "scrollSpeed": 200,
+  "gravity": 800,
+  "jumpForce": -350,
+  "artStyle": {
+    "theme": "retro",
+    "sfx": "arcade"
+  },
+  "player": {
+    "hitbox": [28, 28],
+    "jumpBufferMs": 100
+  },
+  "obstacle": {
+    "spawnRate": 0.8,
+    "gapMin": 120,
+    "gapMax": 180
+  },
+  "levelSections": [
+    { "len": 10, "density": 0.7, "boost": false },
+    { "len": 15, "density": 1.2, "boost": true },
+    { "len": 20, "density": 1.0, "boost": false }
+  ]
+}
