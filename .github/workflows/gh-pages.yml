@@ -5,21 +5,26 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read  # リポ読み取りのみ（書き込みはジョブ単位で付与）
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: pages
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20     # キャッシュは一旦無効で安定化
+          node-version: 20
 
       - run: corepack enable
 
@@ -27,37 +32,32 @@ jobs:
         with:
           version: 8
 
+      # ← Pages を "GitHub Actions でデプロイ" モードに初期化
+      - uses: actions/configure-pages@v5
+
       - name: Install deps
-        working-directory: app
         run: pnpm install --frozen-lockfile || pnpm install
 
       - name: Build
-        working-directory: app
         run: pnpm build
 
       - name: Verify build output exists
-        run: |
-          ls -la app/dist || (echo "ERROR: app/dist not found" && exit 1)
+        run: ls -la dist || (echo "ERROR: dist not found" && exit 1)
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: app/dist
+          path: dist
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-
-    # ← ここで "ジョブ単位" で Pages 権限を強制付与
     permissions:
       pages: write
       id-token: write
-
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
