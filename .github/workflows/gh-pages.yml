@@ -1,4 +1,5 @@
 name: gh-pages
+
 on:
   push:
     branches: [ main ]
@@ -10,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: "pages"
   cancel-in-progress: true
 
 jobs:
@@ -25,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
 
       - name: Enable corepack
         run: corepack enable
@@ -33,20 +34,19 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: '8'
 
-      - name: Install deps (app)
+      - name: Install deps
         working-directory: app
         run: pnpm install --frozen-lockfile || pnpm install
 
-      - name: Build (app)
+      - name: Build
         working-directory: app
         run: pnpm run build
 
-      - name: Verify dist exists
+      - name: Verify build output
         run: ls -la app/dist || (echo "ERROR: app/dist not found" && exit 1)
 
-      # Pages の内部設定。環境によって失敗することがあるため続行許可
       - name: Configure Pages
         uses: actions/configure-pages@v5
         continue-on-error: true
