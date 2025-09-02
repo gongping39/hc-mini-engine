@@ -45,7 +45,8 @@ jobs:
         run: pnpm run build
 
       - name: Verify build output
-        run: ls -la app/dist || (echo "ERROR: app/dist not found" && exit 1)
+        run: |
+          ls -la app/dist || (echo "ERROR: app/dist not found" && exit 1)
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
