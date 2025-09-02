@@ -6,6 +6,7 @@ import { loadDSL } from '../dsl/loader';
 import { setDSL, setGameInstance, setSeed, getDSL } from './dslRuntime';
 import { applySpec } from '../runtime/applySpec';
 import { getSpec } from '../runtime/specLoader';
+import { applyAB } from "../runtime/ab";
 import { recorder, player, dispatchToGame, fromBase64, type Replay } from '../replay';
 // Telemetry is now handled within scenes
 
@@ -31,9 +32,11 @@ async function bootFromQuery() {
   const name = params.get("spec");
   if (!name) return;
   try {
-    const spec = await getSpec(name);
+    let spec = await getSpec(name);
+    const abInfo = applyAB(spec);
+    spec = abInfo.spec;
     applySpec(spec);
-    console.log("[spec] loaded:", name);
+    console.log("[spec] loaded:", name, "ab:", abInfo.ab ?? "-");
   } catch (e) {
     console.warn("[spec] load failed:", name, e);
   }

@@ -3,6 +3,7 @@ import { stringify } from 'yaml';
 import type { GameDSL } from '../dsl/schema';
 import { getDSL, applyDslPatch, isDSLInitialized } from '../game/dslRuntime';
 import { sfx } from '../audio/sfx';
+import { getAbKey } from '../runtime/ab';
 
 interface InspectorProps {
   visible: boolean;
@@ -12,6 +13,7 @@ export function Inspector({ visible }: InspectorProps) {
   const [dsl, setDsl] = useState<GameDSL | null>(null);
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [audioState, setAudioState] = useState(sfx.getState());
+  const ab = getAbKey();
 
   useEffect(() => {
     // DSLが初期化されるまで待つ
@@ -245,6 +247,22 @@ export function Inspector({ visible }: InspectorProps) {
       <div style={{ marginTop: 8, fontSize: 10, opacity: 0.7 }}>
         Press 'I' to toggle inspector
       </div>
+      
+      {ab && (
+        <div style={{
+          position: "fixed", 
+          top: 8, 
+          right: 8, 
+          opacity: 0.6, 
+          fontSize: 12, 
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          padding: '2px 6px',
+          borderRadius: 3,
+          color: '#333'
+        }}>
+          AB:{ab}
+        </div>
+      )}
     </div>
   );
 }

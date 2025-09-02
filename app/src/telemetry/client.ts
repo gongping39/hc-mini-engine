@@ -9,6 +9,7 @@ export type TelemetryPayload = {
   maxDistance?: number;     // 距離 or スコア秒（使いやすい方）
   fpsAvg?: number;
   userAgent?: string;
+  ab?: string;           // ← 追加
 };
 
 export type TelemetryHandle = {
@@ -50,6 +51,7 @@ export function initTelemetry(init?: { level?: string }): TelemetryHandle {
     const params = new URLSearchParams(location.search);
     const seed = params.get("seed") ? Number(params.get("seed")) : undefined;
     const spec = params.get("spec") || undefined;
+    const ab = params.get("ab") || undefined;
 
     const payload: TelemetryPayload = {
       sessionId,
@@ -62,6 +64,7 @@ export function initTelemetry(init?: { level?: string }): TelemetryHandle {
       maxDistance,
       fpsAvg: Number(fpsAvg.toFixed(1)),
       userAgent: navigator.userAgent,
+      ab,
     };
 
     const url = (import.meta as any).env?.VITE_TELEMETRY_URL as string | undefined;
