@@ -10,44 +10,51 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: app
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - run: corepack enable
+      - name: Enable corepack
+        run: corepack enable
 
-      - uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
           version: 8
 
-      # ← Pages を "GitHub Actions でデプロイ" モードに初期化
-      - uses: actions/configure-pages@v5
-
-      - name: Install deps
+      - name: Install deps (app)
+        working-directory: app
         run: pnpm install --frozen-lockfile || pnpm install
 
-      - name: Build
-        run: pnpm build
+      - name: Build (app)
+        working-directory: app
+        run: pnpm run build
 
-      - name: Verify build output exists
-        run: ls -la dist || (echo "ERROR: dist not found" && exit 1)
+      - name: Verify dist exists
+        run: ls -la app/dist || (echo "ERROR: app/dist not found" && exit 1)
+
+      # Pages の内部設定。環境によって失敗することがあるため続行許可
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        continue-on-error: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: app/dist
 
   deploy:
     needs: build
@@ -59,5 +66,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - id: deployment
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
