@@ -1,0 +1,25 @@
+{
+  "title": "Hard Mode Spec",
+  "gameLoop": "runner",
+  "scrollSpeed": 300,
+  "gravity": 1000,
+  "jumpForce": -320,
+  "artStyle": {
+    "theme": "dark",
+    "sfx": "arcade"
+  },
+  "player": {
+    "hitbox": [30, 30],
+    "jumpBufferMs": 80
+  },
+  "obstacle": {
+    "spawnRate": 1.4,
+    "gapMin": 80,
+    "gapMax": 140
+  },
+  "levelSections": [
+    { "len": 5, "density": 1.0, "boost": false },
+    { "len": 10, "density": 1.8, "boost": true },
+    { "len": 20, "density": 1.6, "boost": false }
+  ]
+}

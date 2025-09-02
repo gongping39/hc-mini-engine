@@ -26,24 +26,31 @@ const specParam = urlParams.get('spec');
 const replayParam = urlParams.get('replay');
 const seed = seedParam ? parseInt(seedParam, 10) : Date.now();
 
+async function bootFromQuery() {
+  const params = new URLSearchParams(location.search);
+  const name = params.get("spec");
+  if (!name) return;
+  try {
+    const spec = await getSpec(name);
+    applySpec(spec);
+    console.log("[spec] loaded:", name);
+  } catch (e) {
+    console.warn("[spec] load failed:", name, e);
+  }
+}
+
 // Initialize game configuration
 async function initializeGame() {
-  if (specParam) {
-    try {
-      // Load spec using specLoader (supports both /specs/ and bundled)
-      const spec = await getSpec(specParam);
-      applySpec(spec);
-      console.log(`Game initialized with '${specParam}' spec and seed:`, seed);
-    } catch (error) {
-      console.error(`Failed to load '${specParam}' spec, falling back to DSL:`, error);
-      const dsl = loadDSL();
-      setDSL(dsl);
-    }
-  } else {
-    // Use traditional DSL configuration
+  // Load spec if specified in URL
+  await bootFromQuery();
+  
+  // If no spec was loaded, use traditional DSL configuration
+  if (!specParam) {
     const dsl = loadDSL();
     setDSL(dsl);
     console.log('Game initialized with DSL and seed:', seed);
+  } else {
+    console.log(`Game initialized with '${specParam}' spec and seed:`, seed);
   }
   
   setSeed(seed);

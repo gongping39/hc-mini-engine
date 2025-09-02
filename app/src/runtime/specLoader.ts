@@ -1,29 +1,16 @@
 import type { GameSpec } from '../schema/types';
 
 export async function getSpec(name: string): Promise<GameSpec> {
+  const base = (import.meta as any).env?.BASE_URL || "/";
+  const url  = `${base}specs/${encodeURIComponent(name)}.json`;
   try {
-    // First try to fetch from public specs directory
-    const response = await fetch(`/specs/${name}.json`);
-    if (response.ok) {
-      const spec = await response.json();
-      console.log(`Loaded spec '${name}' from /specs/`);
-      return spec as GameSpec;
-    }
-    
-    // If fetch fails, fall back to bundled schema
-    console.log(`Spec '${name}' not found in /specs/, trying bundled schema...`);
-  } catch (error) {
-    console.warn(`Failed to fetch spec '${name}' from /specs/:`, error);
-  }
-  
-  // Fallback to bundled schema files
-  try {
-    const specModule = await import(`../schema/${name}.json`);
-    const spec = specModule.default as GameSpec;
-    console.log(`Loaded spec '${name}' from bundled schema`);
+    const res = await fetch(url, { cache: "no-store" });
+    if (res.ok) return (await res.json()) as GameSpec;
+  } catch {}
+  // local fallback (dev/404)
+  if (name === "example") {
+    const spec = (await import("../schema/example.json")).default as GameSpec;
     return spec;
-  } catch (error) {
-    console.error(`Failed to load spec '${name}' from both /specs/ and bundled schema:`, error);
-    throw new Error(`Spec '${name}' not found`);
   }
+  throw new Error(`Spec not found: ${url}`);
 }
