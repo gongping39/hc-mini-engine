@@ -7,7 +7,7 @@ import { setDSL, setGameInstance, setSeed, getDSL } from './dslRuntime';
 import { applySpec } from '../runtime/applySpec';
 import { getSpec } from '../runtime/specLoader';
 import { recorder, player, dispatchToGame, fromBase64, type Replay } from '../replay';
-import { setTelemetrySeed, setTelemetryLevel } from '../telemetry/client';
+// Telemetry is now handled within scenes
 
 export function setSeededRandom(seed: number): void {
   Math.random = (() => {
@@ -54,12 +54,6 @@ async function initializeGame() {
   }
   
   setSeed(seed);
-  
-  // Set telemetry context
-  setTelemetrySeed(seed);
-  if (specParam) {
-    setTelemetryLevel(specParam);
-  }
 }
 
 // Initialize before creating game

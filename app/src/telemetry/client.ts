@@ -1,144 +1,97 @@
-export type Telemetry = {
+export type TelemetryPayload = {
   sessionId: string;
-  seed?: number;
-  level?: string;
-  firstFailTime?: number;
-  maxDistance?: number;
-  fpsAvg?: number;
+  ts: number;
   ver: string;
+  seed?: number;
+  spec?: string;
+  level?: string;
+  firstFailTime?: number;   // 秒
+  maxDistance?: number;     // 距離 or スコア秒（使いやすい方）
+  fpsAvg?: number;
+  userAgent?: string;
 };
 
-interface TelemetryClient {
-  tick(dt: number): void;
-  noteFailOnce(sec: number): void;
-  noteDistance(x: number): void;
-  flush(reason: "end" | "manual"): Promise<void>;
+export type TelemetryHandle = {
+  tick: (dtMs: number) => void;
+  noteFailOnce: (sec: number) => void;
+  noteDistance: (x: number) => void;
+  flush: (reason?: "end" | "manual" | "hidden") => Promise<void>;
+};
+
+function randId() {
+  return (crypto as any)?.randomUUID?.() ?? Math.random().toString(36).slice(2);
 }
 
-class TelemetryManager implements TelemetryClient {
-  private sessionId: string;
-  private seed?: number;
-  private level?: string;
-  private firstFailTime?: number;
-  private maxDistance = 0;
-  private fpsValues: number[] = [];
-  private telemetryUrl?: string;
-  private failureNoted = false;
+export function initTelemetry(init?: { level?: string }): TelemetryHandle {
+  const sessionId = randId();
+  const ver = "0.1";
 
-  constructor() {
-    // Generate unique session ID
-    this.sessionId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-    
-    // Get telemetry URL from environment
-    this.telemetryUrl = import.meta.env.VITE_TELEMETRY_URL;
-    
-    if (!this.telemetryUrl) {
-      console.log('[Telemetry] No VITE_TELEMETRY_URL configured, using console output');
-    }
+  let firstFailTime: number | undefined;
+  let maxDistance = 0;
+  let fpsAvg = 0;
+  let samples = 0;
+
+  function tick(dtMs: number) {
+    const fps = dtMs > 0 ? 1000 / dtMs : 0;
+    samples++;
+    // 一次移動平均（安定）
+    fpsAvg += (fps - fpsAvg) / samples;
   }
 
-  setSeed(seed: number): void {
-    this.seed = seed;
+  function noteFailOnce(sec: number) {
+    if (firstFailTime === undefined) firstFailTime = Math.max(0, sec);
   }
 
-  setLevel(level: string): void {
-    this.level = level;
+  function noteDistance(x: number) {
+    if (x > maxDistance) maxDistance = x;
   }
 
-  tick(dt: number): void {
-    // Calculate and store FPS (delta time is in milliseconds)
-    if (dt > 0) {
-      const fps = 1000 / dt;
-      this.fpsValues.push(fps);
-      
-      // Keep only recent FPS values (last 60 samples)
-      if (this.fpsValues.length > 60) {
-        this.fpsValues.shift();
-      }
-    }
-  }
+  async function flush(reason: "end" | "manual" | "hidden" = "manual") {
+    const params = new URLSearchParams(location.search);
+    const seed = params.get("seed") ? Number(params.get("seed")) : undefined;
+    const spec = params.get("spec") || undefined;
 
-  noteFailOnce(sec: number): void {
-    if (!this.failureNoted) {
-      this.firstFailTime = sec;
-      this.failureNoted = true;
-    }
-  }
-
-  noteDistance(x: number): void {
-    this.maxDistance = Math.max(this.maxDistance, x);
-  }
-
-  async flush(reason: "end" | "manual"): Promise<void> {
-    // Calculate average FPS
-    const fpsAvg = this.fpsValues.length > 0 
-      ? this.fpsValues.reduce((sum, fps) => sum + fps, 0) / this.fpsValues.length 
-      : undefined;
-
-    const telemetryData: Telemetry = {
-      sessionId: this.sessionId,
-      seed: this.seed,
-      level: this.level,
-      firstFailTime: this.firstFailTime,
-      maxDistance: this.maxDistance > 0 ? this.maxDistance : undefined,
-      fpsAvg: fpsAvg ? Math.round(fpsAvg * 100) / 100 : undefined,
-      ver: "1.0.0"
+    const payload: TelemetryPayload = {
+      sessionId,
+      ts: Date.now(),
+      ver,
+      seed,
+      spec,
+      level: init?.level,
+      firstFailTime,
+      maxDistance,
+      fpsAvg: Number(fpsAvg.toFixed(1)),
+      userAgent: navigator.userAgent,
     };
 
-    // Filter out undefined values
-    const cleanData = Object.fromEntries(
-      Object.entries(telemetryData).filter(([_, v]) => v !== undefined)
-    ) as Telemetry;
+    const url = (import.meta as any).env?.VITE_TELEMETRY_URL as string | undefined;
 
-    if (this.telemetryUrl) {
-      try {
-        await fetch(this.telemetryUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(cleanData),
+    try {
+      if (url) {
+        await fetch(url, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(payload),
+          // ページ遷移時も送れるよう keepalive（hidden/end で特に有効）
+          keepalive: reason !== "manual",
         });
-        console.log('[Telemetry] Data sent successfully:', reason);
-      } catch (error) {
-        console.error('[Telemetry] Failed to send data:', error);
-        console.log('[Telemetry] Data (fallback to console):', cleanData);
+      } else {
+        // 送信先が無ければコンソールに出すだけ（安全）
+        // eslint-disable-next-line no-console
+        console.log("[telemetry]", payload);
       }
-    } else {
-      // Fallback to console output
-      console.log(`[Telemetry] Session data (${reason}):`, cleanData);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn("[telemetry] failed", e);
     }
-
-    // Reset for potential next session
-    this.resetSession();
   }
 
-  private resetSession(): void {
-    this.maxDistance = 0;
-    this.fpsValues = [];
-    this.failureNoted = false;
-    this.firstFailTime = undefined;
-  }
-}
+  // 画面遷移・非表示でも軽量送信
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") void flush("hidden");
+  });
+  window.addEventListener("pagehide", () => void flush("hidden"));
+  window.addEventListener("beforeunload", () => void flush("hidden"));
 
-let telemetryInstance: TelemetryManager | null = null;
-
-export function initTelemetry(): TelemetryClient {
-  if (!telemetryInstance) {
-    telemetryInstance = new TelemetryManager();
-  }
-  return telemetryInstance;
-}
-
-// Export additional helper functions for setting context
-export function setTelemetrySeed(seed: number): void {
-  if (telemetryInstance) {
-    (telemetryInstance as TelemetryManager).setSeed(seed);
-  }
-}
-
-export function setTelemetryLevel(level: string): void {
-  if (telemetryInstance) {
-    (telemetryInstance as TelemetryManager).setLevel(level);
-  }
+  return { tick, noteFailOnce, noteDistance, flush };
 }

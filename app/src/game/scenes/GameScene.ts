@@ -2,7 +2,7 @@ import { Scene } from 'phaser';
 import { getDSL, getSeed } from '../dslRuntime';
 import { makeRng, type RNG } from '../random';
 import { sfx } from '../../audio/sfx';
-import { initTelemetry } from '../../telemetry/client';
+import { initTelemetry, type TelemetryHandle } from '../../telemetry/client';
 
 type RectGO = Phaser.GameObjects.Rectangle & {
   body: Phaser.Physics.Arcade.Body;
@@ -16,8 +16,8 @@ export class GameScene extends Scene {
   private isGameOver = false;
   private score = 0;
   private rng!: RNG;
-  private telemetry = initTelemetry();
-  private maxPlayerX = 0;
+  private _telemetry!: TelemetryHandle;
+  private _distanceOrScore = 0; // 距離 or スコア秒
 
   constructor() { 
     super({ key: 'GameScene' }); 
@@ -77,7 +77,6 @@ export class GameScene extends Scene {
 
     this.isGameOver = false;
     this.score = 0;
-    this.maxPlayerX = 90; // Player starts at x=90
 
     // UISceneにスコアを初期化
     this.registry.set('score', 0);
@@ -85,6 +84,12 @@ export class GameScene extends Scene {
 
     // Expose keyboard to window for replay dispatch
     (window as any).__phaserKeyboard = this.input.keyboard;
+
+    // Initialize telemetry
+    this._telemetry = initTelemetry({ level: "main" });
+
+    // Add cleanup event
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { void this._telemetry.flush("end"); });
   }
 
   private tryJump(): void {
@@ -131,15 +136,17 @@ export class GameScene extends Scene {
     const dsl = getDSL();
 
     // Telemetry: tick with delta time
-    this.telemetry.tick(delta);
+    this._telemetry.tick(delta);
 
     // スコア（生存時間）
     this.score += delta / 1000;
+    
+    // Update distance/score for telemetry
+    this._distanceOrScore = this.score;
+    this._telemetry.noteDistance(this._distanceOrScore);
     this.registry.set('score', Math.floor(this.score));
 
-    // Track max distance (simulate horizontal movement)
-    const simulatedDistance = this.maxPlayerX + (this.score * 100);
-    this.telemetry.noteDistance(simulatedDistance);
+    // Track max distance (simulate horizontal movement) - removed duplicate telemetry call
 
     // 障害物のY速度を常に0に固定 & 画面外掃除
     this.obstacles.children.iterate((child) => {
@@ -185,8 +192,9 @@ export class GameScene extends Scene {
     sfx.playCrash();
     
     // Telemetry: note failure time and flush data
-    this.telemetry.noteFailOnce(this.score);
-    this.telemetry.flush("end");
+    const finalScoreSec = this.score;
+    this._telemetry.noteFailOnce(finalScoreSec);
+    void this._telemetry.flush("end");
     
     this.spawnEvent?.remove(false);
     this.obstacles.setVelocityX(0);
