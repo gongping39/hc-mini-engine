@@ -5,6 +5,7 @@ import { UIScene } from './scenes/UIScene';
 import { loadDSL } from '../dsl/loader';
 import { setDSL, setGameInstance, setSeed, getDSL } from './dslRuntime';
 import { applySpec } from '../runtime/applySpec';
+import { getSpec } from '../runtime/specLoader';
 import { recorder, player, type Replay } from '../replay';
 
 export function setSeededRandom(seed: number): void {
@@ -26,15 +27,14 @@ const seed = seedParam ? parseInt(seedParam, 10) : Date.now();
 
 // Initialize game configuration
 async function initializeGame() {
-  if (specParam === 'example') {
+  if (specParam) {
     try {
-      // Import and apply example spec
-      const exampleSpec = await import('../schema/example.json');
-      const spec = exampleSpec.default as import('../schema/types').GameSpec;
+      // Load spec using specLoader (supports both /specs/ and bundled)
+      const spec = await getSpec(specParam);
       applySpec(spec);
-      console.log('Game initialized with example spec and seed:', seed);
+      console.log(`Game initialized with '${specParam}' spec and seed:`, seed);
     } catch (error) {
-      console.error('Failed to load example spec, falling back to DSL:', error);
+      console.error(`Failed to load '${specParam}' spec, falling back to DSL:`, error);
       const dsl = loadDSL();
       setDSL(dsl);
     }

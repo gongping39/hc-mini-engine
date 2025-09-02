@@ -39,6 +39,11 @@ jobs:
         working-directory: app
         run: pnpm install --frozen-lockfile
 
+      - name: Copy specs to public
+        run: |
+          mkdir -p app/public/specs
+          cp -r specs/*.json app/public/specs/ || true
+
       - name: Build
         working-directory: app
         env:

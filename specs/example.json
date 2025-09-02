@@ -1,0 +1,25 @@
+{
+  "title": "External Spec Example",
+  "gameLoop": "runner",
+  "scrollSpeed": 250,
+  "gravity": 900,
+  "jumpForce": -400,
+  "artStyle": {
+    "theme": "neon",
+    "sfx": "arcade"
+  },
+  "player": {
+    "hitbox": [32, 32],
+    "jumpBufferMs": 150
+  },
+  "obstacle": {
+    "spawnRate": 1.0,
+    "gapMin": 100,
+    "gapMax": 200
+  },
+  "levelSections": [
+    { "len": 8, "density": 0.8, "boost": false },
+    { "len": 12, "density": 1.5, "boost": true },
+    { "len": 25, "density": 1.2, "boost": false }
+  ]
+}
