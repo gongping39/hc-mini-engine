@@ -119,6 +119,9 @@ public
 .yarn/install-state.gz
 .pnp.*
 
+# Track app lockfile for CI
+!/app/pnpm-lock.yaml
+
 # macOS
 .DS_Store
 .AppleDouble
