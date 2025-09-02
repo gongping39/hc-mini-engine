@@ -5,9 +5,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: read  # リポ読み取りのみ（書き込みはジョブ単位で付与）
 
 concurrency:
   group: pages
@@ -17,29 +15,17 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          # cache は一旦使わない（安定化のため）
-          # cache: pnpm
-          # cache-dependency-path: app/pnpm-lock.yaml
+          node-version: 20     # キャッシュは一旦無効で安定化
 
-      - name: Enable corepack (pnpm)
-        run: corepack enable
+      - run: corepack enable
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 8
-
-      - name: Show tool versions
-        run: |
-          node -v
-          pnpm -v
 
       - name: Install deps
         working-directory: app
@@ -49,6 +35,10 @@ jobs:
         working-directory: app
         run: pnpm build
 
+      - name: Verify build output exists
+        run: |
+          ls -la app/dist || (echo "ERROR: app/dist not found" && exit 1)
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -57,9 +47,16 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+
+    # ← ここで "ジョブ単位" で Pages 権限を強制付与
+    permissions:
+      pages: write
+      id-token: write
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
