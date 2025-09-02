@@ -11,6 +11,7 @@ interface InspectorProps {
 export function Inspector({ visible }: InspectorProps) {
   const [dsl, setDsl] = useState<GameDSL | null>(null);
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  const [audioState, setAudioState] = useState(sfx.getState());
 
   useEffect(() => {
     // DSLが初期化されるまで待つ
@@ -49,6 +50,12 @@ export function Inspector({ visible }: InspectorProps) {
 
       return () => clearInterval(interval);
     }
+  }, []);
+
+  useEffect(() => {
+    // Subscribe to SFX state changes
+    const unsubscribe = sfx.subscribe(setAudioState);
+    return unsubscribe;
   }, []);
 
   const handleInputChange = (field: keyof GameDSL, inputValue: string) => {
@@ -162,7 +169,7 @@ export function Inspector({ visible }: InspectorProps) {
           <label style={{ fontSize: 10, display: 'block', marginBottom: 6 }}>
             <input
               type="checkbox"
-              checked={sfx.isMuted()}
+              checked={audioState.mute}
               onChange={(e) => sfx.setMute(e.target.checked)}
               style={{ marginRight: 4 }}
             />
@@ -176,13 +183,13 @@ export function Inspector({ visible }: InspectorProps) {
               min={0}
               max={1}
               step={0.01}
-              value={sfx.getVolume()}
+              value={audioState.volume}
               onChange={(e) => sfx.setVolume(parseFloat(e.target.value))}
               style={{ width: 140, marginLeft: 8 }}
-              disabled={sfx.isMuted()}
+              disabled={audioState.mute}
             />
             <span style={{ marginLeft: 4, fontSize: 9 }}>
-              {Math.round(sfx.getVolume() * 100)}%
+              {Math.round(audioState.volume * 100)}%
             </span>
           </label>
 
