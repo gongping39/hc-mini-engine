@@ -5,6 +5,7 @@ import { UIScene } from './scenes/UIScene';
 import { loadDSL } from '../dsl/loader';
 import { setDSL, setGameInstance, setSeed, getDSL } from './dslRuntime';
 import { applySpec } from '../runtime/applySpec';
+import { recorder, player, type Replay } from '../replay';
 
 export function setSeededRandom(seed: number): void {
   Math.random = (() => {
@@ -20,6 +21,7 @@ export function setSeededRandom(seed: number): void {
 const urlParams = new URLSearchParams(window.location.search);
 const seedParam = urlParams.get('seed');
 const specParam = urlParams.get('spec');
+const replayParam = urlParams.get('replay');
 const seed = seedParam ? parseInt(seedParam, 10) : Date.now();
 
 // Initialize game configuration
@@ -48,6 +50,51 @@ async function initializeGame() {
 
 // Initialize before creating game
 await initializeGame();
+
+// Handle replay functionality
+async function handleReplay() {
+  if (replayParam) {
+    try {
+      // Decode base64 replay data
+      const replayData = atob(replayParam);
+      const replay: Replay = JSON.parse(replayData);
+      
+      console.log('Starting replay mode with seed:', replay.seed);
+      setSeed(replay.seed);
+      
+      // Wait for game to start, then play replay
+      setTimeout(async () => {
+        await player.play(replay, (type, code) => {
+          console.log('Replay event:', type, code);
+        });
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Failed to load replay:', error);
+    }
+  } else {
+    // Normal mode - start recording
+    recorder.start(seed);
+  }
+}
+
+await handleReplay();
+
+// Expose replay functions for development
+(window as any).hcReplay = {
+  record: () => recorder.start(seed),
+  stop: () => recorder.stop(),
+  play: (replayData: string) => {
+    try {
+      const replay: Replay = JSON.parse(atob(replayData));
+      return player.play(replay, (type, code) => {
+        console.log('Manual replay event:', type, code);
+      });
+    } catch (error) {
+      console.error('Failed to play manual replay:', error);
+    }
+  }
+};
 
 const createConfig = (): Types.Core.GameConfig => {
   const currentDsl = getDSL();

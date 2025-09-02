@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
 import { getSeed } from '../dslRuntime';
+import { recorder, player, type Replay } from '../../replay';
 
 export class UIScene extends Scene {
   private scoreText!: Phaser.GameObjects.Text;
@@ -9,7 +10,10 @@ export class UIScene extends Scene {
   private highScoreText!: Phaser.GameObjects.Text;
   private newBestText!: Phaser.GameObjects.Text;
   private shareButton!: Phaser.GameObjects.Text;
+  private replayExportButton!: Phaser.GameObjects.Text;
+  private replayPlayButton!: Phaser.GameObjects.Text;
   private toastText!: Phaser.GameObjects.Text;
+  private lastReplay: Replay | null = null;
 
   constructor() {
     super({ key: 'UIScene' });
@@ -73,8 +77,34 @@ export class UIScene extends Scene {
     this.shareButton.setInteractive({ useHandCursor: true });
     this.shareButton.on('pointerdown', () => this.shareScore());
 
+    // Replay export button (initially hidden)
+    this.replayExportButton = this.add.text(W / 2, 350, 'Export Replay', {
+      fontSize: '18px',
+      color: '#e67e22',
+      align: 'center',
+      backgroundColor: '#2c3e50',
+      padding: { x: 16, y: 8 }
+    });
+    this.replayExportButton.setOrigin(0.5);
+    this.replayExportButton.setVisible(false);
+    this.replayExportButton.setInteractive({ useHandCursor: true });
+    this.replayExportButton.on('pointerdown', () => this.exportReplay());
+
+    // Replay play button (initially hidden)
+    this.replayPlayButton = this.add.text(W / 2 + 120, 350, 'Play Last', {
+      fontSize: '16px',
+      color: '#9b59b6',
+      align: 'center',
+      backgroundColor: '#2c3e50',
+      padding: { x: 12, y: 6 }
+    });
+    this.replayPlayButton.setOrigin(0.5);
+    this.replayPlayButton.setVisible(false);
+    this.replayPlayButton.setInteractive({ useHandCursor: true });
+    this.replayPlayButton.on('pointerdown', () => this.playLastReplay());
+
     // Restart instruction (initially hidden)
-    this.restartText = this.add.text(W / 2, 360, 'Click to restart', {
+    this.restartText = this.add.text(W / 2, 390, 'Click to restart', {
       fontSize: '24px',
       color: '#ffffff',
       align: 'center'
@@ -95,7 +125,10 @@ export class UIScene extends Scene {
 
     // Click to restart
     this.input.on('pointerdown', (_pointer: Phaser.Input.Pointer, currentlyOver: Phaser.GameObjects.GameObject[]) => {
-      if (this.registry.get('gameOver') && !currentlyOver.includes(this.shareButton)) {
+      if (this.registry.get('gameOver') && 
+          !currentlyOver.includes(this.shareButton) && 
+          !currentlyOver.includes(this.replayExportButton) &&
+          !currentlyOver.includes(this.replayPlayButton)) {
         this.registry.events.emit('restart-game');
         this.hideGameOverScreen();
       }
@@ -116,7 +149,74 @@ export class UIScene extends Scene {
     });
   }
 
-  private showToast(): void {
+
+  private exportReplay(): void {
+    try {
+      if (recorder.isRecording()) {
+        const replay = recorder.stop();
+        this.lastReplay = replay;
+        
+        // Save to localStorage
+        localStorage.setItem('hc-mini:lastReplay', JSON.stringify(replay));
+        
+        // Export to clipboard as base64
+        const replayData = btoa(JSON.stringify(replay));
+        const replayUrl = `${window.location.origin}${window.location.pathname}?replay=${replayData}`;
+        
+        navigator.clipboard.writeText(replayUrl).then(() => {
+          this.showToast('Replay URL copied!');
+        }).catch((err) => {
+          console.error('Failed to copy replay:', err);
+          this.showToast('Failed to copy replay');
+        });
+        
+        // Restart recording for next game
+        const seed = getSeed();
+        recorder.start(seed);
+      }
+    } catch (error) {
+      console.error('Failed to export replay:', error);
+      this.showToast('Failed to export replay');
+    }
+  }
+
+  private playLastReplay(): void {
+    let replayToPlay = this.lastReplay;
+    
+    // If no replay in memory, try localStorage
+    if (!replayToPlay) {
+      try {
+        const saved = localStorage.getItem('hc-mini:lastReplay');
+        if (saved) {
+          replayToPlay = JSON.parse(saved);
+        }
+      } catch (error) {
+        console.error('Failed to load last replay:', error);
+      }
+    }
+    
+    if (replayToPlay) {
+      // Hide game over screen and restart game
+      this.hideGameOverScreen();
+      this.registry.events.emit('restart-game');
+      
+      // Wait a bit then start replay
+      setTimeout(async () => {
+        try {
+          await player.play(replayToPlay!, (type, code) => {
+            console.log('Replay event:', type, code);
+          });
+        } catch (error) {
+          console.error('Failed to play replay:', error);
+        }
+      }, 1000);
+    } else {
+      this.showToast('No replay available');
+    }
+  }
+
+  private showToast(message: string = 'Copied!'): void {
+    this.toastText.setText(message);
     this.toastText.setVisible(true);
     this.tweens.add({
       targets: this.toastText,
@@ -135,6 +235,8 @@ export class UIScene extends Scene {
     this.highScoreText.setVisible(false);
     this.newBestText.setVisible(false);
     this.shareButton.setVisible(false);
+    this.replayExportButton.setVisible(false);
+    this.replayPlayButton.setVisible(false);
     this.restartText.setVisible(false);
   }
 
@@ -159,6 +261,14 @@ export class UIScene extends Scene {
       }
       
       this.shareButton.setVisible(true);
+      this.replayExportButton.setVisible(true);
+      
+      // Only show Play Last button if there's a replay available
+      const hasLastReplay = this.lastReplay || localStorage.getItem('hc-mini:lastReplay');
+      if (hasLastReplay) {
+        this.replayPlayButton.setVisible(true);
+      }
+      
       this.restartText.setVisible(true);
     }
   }
