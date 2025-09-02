@@ -82,6 +82,9 @@ export class GameScene extends Scene {
     // UISceneにスコアを初期化
     this.registry.set('score', 0);
     this.registry.set('gameOver', false);
+
+    // Expose keyboard to window for replay dispatch
+    (window as any).__phaserKeyboard = this.input.keyboard;
   }
 
   private tryJump(): void {

@@ -5,6 +5,7 @@ class ReplayRecorder {
   private startTime = 0;
   private seed = 0;
   private events: ReplayEvent[] = [];
+  private meta?: { level?: string; spec?: string };
   
   private handleKeyDown = (event: KeyboardEvent) => {
     if (!this.recording) return;
@@ -12,7 +13,7 @@ class ReplayRecorder {
     const code = this.mapEventToCode(event);
     if (code) {
       const t = Date.now() - this.startTime;
-      this.events.push({ t, k: "down", c: code });
+      this.events.push({ t, k: "down", code });
     }
   };
 
@@ -22,7 +23,7 @@ class ReplayRecorder {
     const code = this.mapEventToCode(event);
     if (code) {
       const t = Date.now() - this.startTime;
-      this.events.push({ t, k: "up", c: code });
+      this.events.push({ t, k: "up", code });
     }
   };
 
@@ -30,28 +31,28 @@ class ReplayRecorder {
     if (!this.recording) return;
     
     const t = Date.now() - this.startTime;
-    this.events.push({ t, k: "down", c: "POINTER" });
+    this.events.push({ t, k: "down", code: "SPACE" });
   };
 
   private handlePointerUp = (_event: PointerEvent) => {
     if (!this.recording) return;
     
     const t = Date.now() - this.startTime;
-    this.events.push({ t, k: "up", c: "POINTER" });
+    this.events.push({ t, k: "up", code: "SPACE" });
   };
 
   private handleTouchStart = (_event: TouchEvent) => {
     if (!this.recording) return;
     
     const t = Date.now() - this.startTime;
-    this.events.push({ t, k: "down", c: "TOUCH" });
+    this.events.push({ t, k: "down", code: "SPACE" });
   };
 
   private handleTouchEnd = (_event: TouchEvent) => {
     if (!this.recording) return;
     
     const t = Date.now() - this.startTime;
-    this.events.push({ t, k: "up", c: "TOUCH" });
+    this.events.push({ t, k: "up", code: "SPACE" });
   };
 
   private mapEventToCode(event: KeyboardEvent): string | null {
@@ -66,7 +67,7 @@ class ReplayRecorder {
     return null;
   }
 
-  start(seed: number): void {
+  start(seed: number, meta?: {level?:string; spec?:string}): void {
     if (this.recording) {
       this.stop(); // Stop any existing recording
     }
@@ -74,6 +75,7 @@ class ReplayRecorder {
     this.recording = true;
     this.startTime = Date.now();
     this.seed = seed;
+    this.meta = meta;
     this.events = [];
     
     // Add event listeners
@@ -105,6 +107,8 @@ class ReplayRecorder {
     const replay: Replay = {
       seed: this.seed,
       startedAt: this.startTime,
+      level: this.meta?.level,
+      spec: this.meta?.spec,
       events: [...this.events]
     };
     

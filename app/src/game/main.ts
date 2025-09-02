@@ -6,7 +6,7 @@ import { loadDSL } from '../dsl/loader';
 import { setDSL, setGameInstance, setSeed, getDSL } from './dslRuntime';
 import { applySpec } from '../runtime/applySpec';
 import { getSpec } from '../runtime/specLoader';
-import { recorder, player, type Replay } from '../replay';
+import { recorder, player, dispatchToGame, fromBase64, type Replay } from '../replay';
 import { setTelemetrySeed, setTelemetryLevel } from '../telemetry/client';
 
 export function setSeededRandom(seed: number): void {
@@ -78,9 +78,7 @@ async function handleReplay() {
       
       // Wait for game to start, then play replay
       setTimeout(async () => {
-        await player.play(replay, (type, code) => {
-          console.log('Replay event:', type, code);
-        });
+        await player.play(replay, dispatchToGame);
       }, 1000);
       
     } catch (error) {
@@ -96,18 +94,9 @@ await handleReplay();
 
 // Expose replay functions for development
 (window as any).hcReplay = {
-  record: () => recorder.start(seed),
-  stop: () => recorder.stop(),
-  play: (replayData: string) => {
-    try {
-      const replay: Replay = JSON.parse(atob(replayData));
-      return player.play(replay, (type, code) => {
-        console.log('Manual replay event:', type, code);
-      });
-    } catch (error) {
-      console.error('Failed to play manual replay:', error);
-    }
-  }
+  record: (seed:number, meta?:any) => recorder.start(seed, meta),
+  stop:   () => recorder.stop(),
+  play:   (b64:string) => player.play(fromBase64(b64), dispatchToGame),
 };
 
 const createConfig = (): Types.Core.GameConfig => {

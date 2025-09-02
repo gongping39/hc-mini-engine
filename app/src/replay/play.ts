@@ -87,7 +87,7 @@ class ReplayPlayer {
         const timeout = window.setTimeout(() => {
           if (!this.playing) return;
           
-          this.dispatchSyntheticEvent(event.k, event.c, dispatch);
+          this.dispatchSyntheticEvent(event.k, event.code, dispatch);
           completedEvents++;
           
           // Check if this was the last event

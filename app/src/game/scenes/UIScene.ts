@@ -1,6 +1,6 @@
 import { Scene } from 'phaser';
 import { getSeed } from '../dslRuntime';
-import { recorder, player, type Replay } from '../../replay';
+import { recorder, player, dispatchToGame, toBase64, type Replay } from '../../replay';
 
 export class UIScene extends Scene {
   private scoreText!: Phaser.GameObjects.Text;
@@ -160,7 +160,7 @@ export class UIScene extends Scene {
         localStorage.setItem('hc-mini:lastReplay', JSON.stringify(replay));
         
         // Export to clipboard as base64
-        const replayData = btoa(JSON.stringify(replay));
+        const replayData = toBase64(replay);
         const replayUrl = `${window.location.origin}${window.location.pathname}?replay=${replayData}`;
         
         navigator.clipboard.writeText(replayUrl).then(() => {
@@ -203,9 +203,7 @@ export class UIScene extends Scene {
       // Wait a bit then start replay
       setTimeout(async () => {
         try {
-          await player.play(replayToPlay!, (type, code) => {
-            console.log('Replay event:', type, code);
-          });
+          await player.play(replayToPlay!, dispatchToGame);
         } catch (error) {
           console.error('Failed to play replay:', error);
         }
