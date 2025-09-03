@@ -155,6 +155,19 @@ const createConfig = (): Types.Core.GameConfig => {
 // Wait for DOM to be ready before creating game
 function createGameInstance() {
   console.log('Creating game instance...');
+  
+  // Ensure canvas exists and is ready
+  const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  if (!canvas) {
+    console.error('Canvas element not found! Creating game with parent instead.');
+  } else {
+    console.log('Canvas element found, clearing it for Phaser...');
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, 800, 600);
+    }
+  }
+  
   const config = createConfig();
   const game = new Game(config);
   
@@ -230,30 +243,28 @@ setTimeout(() => {
           console.log('Game step error:', error);
         }
         
-        // Add manual test drawing to compare with Phaser
+        // Give Phaser time to render, then check if it worked
         setTimeout(() => {
+          console.log('Checking if Phaser rendered anything...');
           const ctx = canvas.getContext('2d');
           if (ctx) {
-            console.log('Drawing manual test objects for comparison...');
-            // Clear canvas first
-            ctx.clearRect(0, 0, 800, 600);
+            // Check if Phaser drew anything by sampling pixel data
+            const imageData = ctx.getImageData(400, 560, 1, 1); // Sample ground area
+            const [r, g, b, a] = imageData.data;
+            console.log('Ground area pixel:', r, g, b, a);
             
-            // Draw background
-            ctx.fillStyle = '#2c3e50';
-            ctx.fillRect(0, 0, 800, 600);
-            
-            // Draw ground (gray)
-            ctx.fillStyle = '#2b2f45';
-            ctx.fillRect(0, 560, 800, 80);
-            
-            // Draw player (blue)
-            ctx.fillStyle = '#4bc0ff';
-            ctx.fillRect(90, 504, 32, 32);
-            
-            // Add text overlay
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '16px Arial';
-            ctx.fillText('Manual Drawing - Phaser not working', 10, 30);
+            if (r === 0 && g === 0 && b === 0 && a === 0) {
+              console.log('Phaser did not draw anything, canvas is empty');
+              // Try one more forced render
+              if (game.scene.scenes[1]) {
+                const gameScene = game.scene.scenes[1];
+                console.log('Attempting to force scene render...');
+                gameScene.sys.updateList.update(0, 16);
+                gameScene.sys.displayList.render(game.renderer, gameScene.cameras.main);
+              }
+            } else {
+              console.log('Phaser successfully rendered to canvas!');
+            }
           }
         }, 2000);
       }
