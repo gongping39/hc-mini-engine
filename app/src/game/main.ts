@@ -156,14 +156,28 @@ function createGameInstance() {
     console.log('Game scale:', game.scale);
     console.log('Active scenes:', game.scene.scenes);
     
-    // Force scene updates and rendering
-    if (game.scene.scenes[0]) {
-      console.log('Forcing scene render...');
-      const scene = game.scene.scenes[0];
-      console.log('Active scene:', scene.scene.key, 'isActive:', scene.scene.isActive());
+    // Check all scenes and their status
+    console.log('All scenes:', game.scene.scenes.length);
+    game.scene.scenes.forEach((scene, index) => {
+      console.log(`Scene ${index}:`, scene.scene.key, 'isActive:', scene.scene.isActive(), 'isVisible:', scene.scene.isVisible());
+    });
+    
+    // Check what's currently running
+    const activeScenes = game.scene.getScenes(true);
+    console.log('Active scenes count:', activeScenes.length);
+    
+    // Force a manual scene transition if needed
+    if (game.scene.scenes.length > 0) {
+      const preloadScene = game.scene.getScene('PreloadScene');
+      const gameScene = game.scene.getScene('GameScene');
+      console.log('PreloadScene:', preloadScene?.scene.isActive());
+      console.log('GameScene:', gameScene?.scene.isActive());
       
-      // Try to force a scene update/render
-      scene.sys.game.loop.step(performance.now());
+      if (preloadScene && !gameScene?.scene.isActive()) {
+        console.log('Manually starting GameScene...');
+        preloadScene.scene.start('GameScene');
+        preloadScene.scene.start('UIScene');
+      }
     }
   }, 500);
   
