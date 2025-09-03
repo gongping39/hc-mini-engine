@@ -30,6 +30,12 @@ body {
   min-height: 100vh;
 }
 
+/* Override body flex when game is running */
+body:has(#game-root) {
+  display: block;
+  place-items: initial;
+}
+
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
