@@ -258,9 +258,9 @@ setTimeout(() => {
               // Try one more forced render
               if (game.scene.scenes[1]) {
                 const gameScene = game.scene.scenes[1];
-                console.log('Attempting to force scene render...');
-                gameScene.sys.updateList.update(0, 16);
-                gameScene.sys.displayList.render(game.renderer, gameScene.cameras.main);
+                console.log('Attempting to wake up game scene...');
+                gameScene.scene.wake();
+                gameScene.scene.setVisible(true);
               }
             } else {
               console.log('Phaser successfully rendered to canvas!');
