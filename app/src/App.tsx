@@ -13,17 +13,29 @@ function App() {
 
     // Import and initialize game AFTER the canvas is definitely in the DOM
     const initGame = () => {
-      if (canvasRef.current) {
-        console.log('Canvas ref is ready, starting game initialization...'); 
-        console.log('Canvas element:', canvasRef.current);
+      const canvasElement = canvasRef.current;
+      const canvasById = document.getElementById('game-canvas');
+      
+      console.log('Canvas ref:', canvasElement);
+      console.log('Canvas by ID:', canvasById);
+      
+      if (canvasElement && canvasById) {
+        console.log('Both canvas references found, starting game initialization...'); 
+        console.log('Canvas element:', canvasElement);
+        console.log('Canvas dimensions:', canvasElement.width, 'x', canvasElement.height);
+        
+        // Store canvas reference globally for Phaser to find
+        (window as any).__gameCanvas = canvasElement;
+        
         import('./game/main');
       } else {
-        console.log('Canvas ref not ready, retrying...');
-        setTimeout(initGame, 50);
+        console.log('Canvas not fully ready, retrying...');
+        setTimeout(initGame, 100);
       }
     };
     
-    setTimeout(initGame, 500);
+    // Wait longer to ensure DOM is fully ready
+    setTimeout(initGame, 1000);
 
     // Handle 'I' key toggle
     const handleKeyDown = (event: KeyboardEvent) => {

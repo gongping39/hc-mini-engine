@@ -125,7 +125,12 @@ const createConfig = (): Types.Core.GameConfig => {
   console.log('Creating Phaser config. Parent element:', gameRoot);
   
   // Try multiple methods to find the canvas
-  let existingCanvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  let existingCanvas = (window as any).__gameCanvas as HTMLCanvasElement;
+  
+  if (!existingCanvas) {
+    console.log('Global canvas not found, trying getElementById...');
+    existingCanvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  }
   
   if (!existingCanvas) {
     console.log('getElementById failed, trying querySelector...');
