@@ -195,16 +195,34 @@ setTimeout(() => {
   console.log('Canvas dimensions:', canvas?.width, 'x', canvas?.height);
   console.log('Canvas style:', canvas?.style.cssText);
   
-  // Test direct canvas drawing (but don't interfere with Phaser)
+  // Force Phaser to render by clearing and triggering manual render
   if (canvas) {
     console.log('Canvas found! Dimensions:', canvas.width, 'x', canvas.height);
     console.log('Canvas context available:', !!canvas.getContext('2d'));
     
-    // Clear any existing content first
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
+    // Force game rendering
+    setTimeout(() => {
+      console.log('Forcing Phaser render...');
+      if (game.renderer) {
+        console.log('Renderer type:', game.renderer.type);
+        console.log('Renderer width:', game.renderer.width);  
+        console.log('Renderer height:', game.renderer.height);
+        
+        // Force a step update
+        game.step(performance.now(), 16);
+        
+        // Clear and redraw
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#2c3e50';
+          ctx.fillRect(0, 0, 800, 600);
+          ctx.fillStyle = '#4bc0ff';
+          ctx.fillRect(90, 504, 32, 32); // Draw player manually for test
+          ctx.fillStyle = '#2b2f45'; 
+          ctx.fillRect(0, 560, 800, 80); // Draw ground manually for test
+        }
+      }
+    }, 1500);
   }
 }, 1000);
 
