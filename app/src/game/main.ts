@@ -130,6 +130,13 @@ const createConfig = (): Types.Core.GameConfig => {
     height: 600,
     canvas: document.getElementById('game-canvas') as HTMLCanvasElement,
     backgroundColor: '#2c3e50',
+    render: {
+      antialias: false,
+      pixelArt: true,
+      transparent: false,
+      clearBeforeRender: true,
+      preserveDrawingBuffer: false
+    },
     physics: {
       default: 'arcade',
       arcade: {
@@ -208,19 +215,15 @@ setTimeout(() => {
         console.log('Renderer width:', game.renderer.width);  
         console.log('Renderer height:', game.renderer.height);
         
-        // Force a step update
-        game.step(performance.now(), 16);
-        
-        // Clear and redraw
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.fillStyle = '#2c3e50';
-          ctx.fillRect(0, 0, 800, 600);
-          ctx.fillStyle = '#4bc0ff';
-          ctx.fillRect(90, 504, 32, 32); // Draw player manually for test
-          ctx.fillStyle = '#2b2f45'; 
-          ctx.fillRect(0, 560, 800, 80); // Draw ground manually for test
+        // Force a step update to trigger Phaser rendering
+        console.log('Game loop running:', game.loop.running);
+        if (!game.loop.running) {
+          console.log('Starting game loop...');
+          game.loop.start();
         }
+        
+        // Force rendering without manual drawing
+        game.step(performance.now(), 16);
       }
     }, 1500);
   }
