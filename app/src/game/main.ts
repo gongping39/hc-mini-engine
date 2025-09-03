@@ -217,13 +217,14 @@ setTimeout(() => {
         
         // Force a step update to trigger Phaser rendering
         console.log('Game loop running:', game.loop.running);
-        if (!game.loop.running) {
-          console.log('Starting game loop...');
-          game.loop.start();
-        }
         
-        // Force rendering without manual drawing
-        game.step(performance.now(), 16);
+        // Try to force render
+        try {
+          game.step(performance.now(), 16);
+          console.log('Forced game step completed');
+        } catch (error) {
+          console.log('Game step error:', error);
+        }
       }
     }, 1500);
   }
