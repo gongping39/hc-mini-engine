@@ -153,6 +153,15 @@ function createGameInstance() {
     console.log('Game object:', game);
     console.log('Game canvas:', game.canvas);
     console.log('Game context:', game.context);
+    console.log('Game renderer:', game.renderer);
+    console.log('Game scale:', game.scale);
+    console.log('Active scenes:', game.scene.scenes);
+    
+    // Force a render
+    if (game.renderer) {
+      console.log('Forcing render...');
+      game.renderer.render(game.scene.scenes[0]);
+    }
   }, 500);
   
   return game;
@@ -163,11 +172,24 @@ export const game = createGameInstance();
 // Debug canvas creation
 setTimeout(() => {
   const gameRoot = document.getElementById('game-root');
-  const canvas = gameRoot?.querySelector('canvas');
+  const canvas = gameRoot?.querySelector('canvas') as HTMLCanvasElement;
   console.log('Game root element:', gameRoot);
   console.log('Canvas element:', canvas);
   console.log('Canvas dimensions:', canvas?.width, 'x', canvas?.height);
   console.log('Canvas style:', canvas?.style.cssText);
+  
+  // Test direct canvas drawing
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      console.log('Drawing test rectangle on canvas...');
+      ctx.fillStyle = '#00ff00';
+      ctx.fillRect(10, 10, 100, 50);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '20px Arial';
+      ctx.fillText('TEST', 20, 40);
+    }
+  }
 }, 1000);
 
 // Register game instance for runtime DSL updates
