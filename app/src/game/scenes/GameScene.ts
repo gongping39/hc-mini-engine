@@ -35,6 +35,7 @@ export class GameScene extends Scene {
     console.log('GameScene create - DSL gravity:', dsl.gravityY);
     console.log('GameScene create - Seed:', seed);
     console.log('GameScene create - Physics world gravity (before):', this.physics.world.gravity.y);
+    console.log('GameScene create - Canvas dimensions:', W, 'x', H);
     
     // DSL値で物理エンジンの重力を強制的に更新
     this.physics.world.gravity.y = dsl.gravityY;
@@ -46,6 +47,7 @@ export class GameScene extends Scene {
     const ground = this.add.rectangle(W / 2, groundY, W, groundH, 0x2b2f45) as RectGO;
     this.physics.add.existing(ground, true);
     this.ground = ground;
+    console.log('Ground created at:', W / 2, groundY, 'size:', W, 'x', groundH);
 
     // player（重力あり）
     const playerSize = 32;
@@ -54,6 +56,7 @@ export class GameScene extends Scene {
     this.physics.add.existing(player);
     player.body.setCollideWorldBounds(true);
     this.player = player;
+    console.log('Player created at:', 90, playerY, 'size:', playerSize, 'x', playerSize);
 
     // 障害物グループ：重力なし・押されない
     this.obstacles = this.physics.add.group({
@@ -90,6 +93,15 @@ export class GameScene extends Scene {
 
     // Add cleanup event
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { void this._telemetry.flush("end"); });
+
+    // Debug: Check if objects are visible
+    setTimeout(() => {
+      console.log('GameScene objects check:');
+      console.log('Ground visible:', this.ground.visible, 'alpha:', this.ground.alpha);
+      console.log('Player visible:', this.player.visible, 'alpha:', this.player.alpha);
+      console.log('Scene children count:', this.children.list.length);
+      console.log('Scene camera:', this.cameras.main.x, this.cameras.main.y, this.cameras.main.zoom);
+    }, 100);
   }
 
   private tryJump(): void {
