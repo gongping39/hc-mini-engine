@@ -120,39 +120,11 @@ await handleReplay();
 const createConfig = (): Types.Core.GameConfig => {
   const currentDsl = getDSL();
   
-  // Ensure parent element exists
-  const gameRoot = document.getElementById('game-root');
-  console.log('Creating Phaser config. Parent element:', gameRoot);
-  
-  // Try multiple methods to find the canvas
-  let existingCanvas = (window as any).__gameCanvas as HTMLCanvasElement;
-  
-  if (!existingCanvas) {
-    console.log('Global canvas not found, trying getElementById...');
-    existingCanvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-  }
-  
-  if (!existingCanvas) {
-    console.log('getElementById failed, trying querySelector...');
-    existingCanvas = document.querySelector('#game-canvas') as HTMLCanvasElement;
-  }
-  
-  if (!existingCanvas) {
-    console.log('querySelector failed, trying canvas tag selector...');
-    existingCanvas = document.querySelector('canvas[id="game-canvas"]') as HTMLCanvasElement;
-  }
-  
-  console.log('Using existing canvas:', !!existingCanvas);
-  if (existingCanvas) {
-    console.log('Found canvas with dimensions:', existingCanvas.width, 'x', existingCanvas.height);
-  }
-  
   return {
     type: Phaser.CANVAS,
     width: 800,
     height: 600,
-    parent: existingCanvas ? undefined : 'game-root',
-    canvas: existingCanvas || undefined,
+    parent: 'game-root',
     backgroundColor: '#2c3e50',
     render: {
       antialias: false,
@@ -178,132 +150,13 @@ const createConfig = (): Types.Core.GameConfig => {
   };
 };
 
-// Wait for DOM to be ready before creating game
 function createGameInstance() {
-  console.log('Creating game instance...');
-  
-  // Ensure canvas exists and is ready
-  const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-  if (!canvas) {
-    console.error('Canvas element not found! Creating game with parent instead.');
-  } else {
-    console.log('Canvas element found, clearing it for Phaser...');
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.clearRect(0, 0, 800, 600);
-    }
-  }
-  
   const config = createConfig();
   const game = new Game(config);
-  
-  // Additional debug
-  setTimeout(() => {
-    console.log('Game object:', game);
-    console.log('Game canvas:', game.canvas);
-    console.log('Game context:', game.context);
-    console.log('Game renderer:', game.renderer);
-    console.log('Game scale:', game.scale);
-    console.log('Active scenes:', game.scene.scenes);
-    
-    // Check all scenes and their status
-    console.log('All scenes:', game.scene.scenes.length);
-    game.scene.scenes.forEach((scene, index) => {
-      console.log(`Scene ${index}:`, scene.scene.key, 'isActive:', scene.scene.isActive(), 'isVisible:', scene.scene.isVisible());
-    });
-    
-    // Check what's currently running
-    const activeScenes = game.scene.getScenes(true);
-    console.log('Active scenes count:', activeScenes.length);
-    
-    // Force a manual scene transition if needed
-    if (game.scene.scenes.length > 0) {
-      const preloadScene = game.scene.getScene('PreloadScene');
-      const gameScene = game.scene.getScene('GameScene');
-      console.log('PreloadScene:', preloadScene?.scene.isActive());
-      console.log('GameScene:', gameScene?.scene.isActive());
-      
-      if (preloadScene && !gameScene?.scene.isActive()) {
-        console.log('Manually starting GameScene...');
-        preloadScene.scene.start('GameScene');
-        preloadScene.scene.start('UIScene');
-      }
-    }
-  }, 500);
-  
   return game;
 }
 
 export const game = createGameInstance();
-
-// Debug canvas creation
-setTimeout(() => {
-  const gameRoot = document.getElementById('game-root');
-  const canvas = gameRoot?.querySelector('canvas') as HTMLCanvasElement;
-  console.log('Game root element:', gameRoot);
-  console.log('Canvas element:', canvas);
-  console.log('Canvas dimensions:', canvas?.width, 'x', canvas?.height);
-  console.log('Canvas style:', canvas?.style.cssText);
-  
-  // Force Phaser to render by clearing and triggering manual render
-  if (canvas) {
-    console.log('Canvas found! Dimensions:', canvas.width, 'x', canvas.height);
-    console.log('Canvas context available:', !!canvas.getContext('2d'));
-    
-    // Force game rendering
-    setTimeout(() => {
-      console.log('Forcing Phaser render...');
-      if (game.renderer) {
-        console.log('Renderer type:', game.renderer.type);
-        console.log('Renderer width:', game.renderer.width);  
-        console.log('Renderer height:', game.renderer.height);
-        
-        // Force a step update to trigger Phaser rendering
-        console.log('Game loop running:', game.loop.running);
-        
-        // Try to force render
-        try {
-          game.step(performance.now(), 16);
-          console.log('Forced game step completed');
-        } catch (error) {
-          console.log('Game step error:', error);
-        }
-        
-        // Give Phaser time to render, then check if it worked
-        setTimeout(() => {
-          console.log('Checking if Phaser rendered anything...');
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            // Check if Phaser drew anything by sampling pixel data
-            const imageData = ctx.getImageData(400, 560, 1, 1); // Sample ground area
-            const [r, g, b, a] = imageData.data;
-            console.log('Ground area pixel:', r, g, b, a);
-            
-            if (r === 0 && g === 0 && b === 0 && a === 0) {
-              console.log('Phaser did not draw anything, forcing manual render...');
-              
-              // Force Phaser to render by manually calling the render loop
-              if (game && game.renderer && game.scene.scenes[1]) {
-                console.log('Forcing Phaser render manually...');
-                const gameScene = game.scene.scenes[1];
-                
-                // Wake up the scene and make it visible
-                gameScene.scene.wake();
-                gameScene.scene.setVisible(true);
-                gameScene.scene.setActive(true);
-                
-                // Force a render step
-                game.step(performance.now(), 16);
-              }
-            } else {
-              console.log('Phaser successfully rendered to canvas!');
-            }
-          }
-        }, 2000);
-      }
-    }, 1500);
-  }
-}, 1000);
 
 // Register game instance for runtime DSL updates
 setGameInstance(game);

@@ -1,41 +1,17 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Inspector } from './ui/Inspector';
 import { sfx } from './audio/sfx';
 import './App.css';
 
 function App() {
   const [inspectorVisible, setInspectorVisible] = useState(true);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     // Don't prime audio immediately - wait for user interaction
     // sfx.prime();
 
-    // Import and initialize game AFTER the canvas is definitely in the DOM
-    const initGame = () => {
-      const canvasElement = canvasRef.current;
-      const canvasById = document.getElementById('game-canvas');
-      
-      console.log('Canvas ref:', canvasElement);
-      console.log('Canvas by ID:', canvasById);
-      
-      if (canvasElement && canvasById) {
-        console.log('Both canvas references found, starting game initialization...'); 
-        console.log('Canvas element:', canvasElement);
-        console.log('Canvas dimensions:', canvasElement.width, 'x', canvasElement.height);
-        
-        // Store canvas reference globally for Phaser to find
-        (window as any).__gameCanvas = canvasElement;
-        
-        import('./game/main');
-      } else {
-        console.log('Canvas not fully ready, retrying...');
-        setTimeout(initGame, 100);
-      }
-    };
-    
-    // Wait longer to ensure DOM is fully ready
-    setTimeout(initGame, 1000);
+    // Initialize game
+    import('./game/main');
 
     // Handle 'I' key toggle
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -50,25 +26,19 @@ function App() {
 
   return (
     <>
-      <div id="game-root">
-        <canvas 
-          ref={canvasRef}
-          id="game-canvas" 
-          width="800" 
-          height="600" 
-          style={{
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            display: 'block',
-            backgroundColor: '#2c3e50'
-          }}
-          onClick={() => {
-            // Initialize audio on first user interaction
-            sfx.prime();
-          }}
-        >
-          Your browser does not support the canvas element.
-        </canvas>
-      </div>
+      <div 
+        id="game-root"
+        style={{
+          width: '800px',
+          height: '600px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          backgroundColor: '#2c3e50'
+        }}
+        onClick={() => {
+          // Initialize audio on first user interaction
+          sfx.prime();
+        }}
+      ></div>
       <Inspector visible={inspectorVisible} />
     </>
   );
