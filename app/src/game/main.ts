@@ -5,7 +5,7 @@ import { UIScene } from './scenes/UIScene';
 import { loadDSL } from '../dsl/loader';
 import { setDSL, setGameInstance, setSeed, getDSL } from './dslRuntime';
 import { applySpec } from '../runtime/applySpec';
-import { getSpec } from '../runtime/specLoader';
+import { getSpec, type SpecLoadResult } from '../runtime/specLoader';
 import { applyAB } from "../runtime/ab";
 import { recorder, player, dispatchToGame, fromBase64, type Replay } from '../replay';
 // Telemetry is now handled within scenes
@@ -27,18 +27,39 @@ const specParam = urlParams.get('spec');
 const replayParam = urlParams.get('replay');
 const seed = seedParam ? parseInt(seedParam, 10) : Date.now();
 
+// Global variable to store spec load result for UI
+let specLoadResult: SpecLoadResult | null = null;
+
+export function getSpecLoadResult(): SpecLoadResult | null {
+  return specLoadResult;
+}
+
 async function bootFromQuery() {
   const params = new URLSearchParams(location.search);
   const name = params.get("spec");
   if (!name) return;
+  
   try {
-    let spec = await getSpec(name);
+    const result = await getSpec(name);
+    specLoadResult = result;
+    
+    let spec = result.spec;
     const abInfo = applyAB(spec);
     spec = abInfo.spec;
     applySpec(spec);
-    console.log("[spec] loaded:", name, "ab:", abInfo.ab ?? "-");
+    
+    console.log("[spec] loaded:", name, "source:", result.source, "ab:", abInfo.ab ?? "-");
+    
+    if (!result.validation.success) {
+      console.warn("[spec] validation warnings:", result.validation.error);
+    }
   } catch (e) {
     console.warn("[spec] load failed:", name, e);
+    specLoadResult = {
+      spec: {} as any, // This should be handled by validator
+      source: 'fallback',
+      validation: { success: false, error: String(e), fallback: {} as any }
+    };
   }
 }
 
