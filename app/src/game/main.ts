@@ -130,7 +130,6 @@ const createConfig = (): Types.Core.GameConfig => {
     height: 600,
     parent: 'game-root',
     backgroundColor: '#2c3e50',
-    canvas: null, // Let Phaser create the canvas
     canvasStyle: 'border: 5px solid #ff0000; display: block;',
     physics: {
       default: 'arcade',
