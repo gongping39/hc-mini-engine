@@ -151,10 +151,16 @@ const createConfig = (): Types.Core.GameConfig => {
     backgroundColor: '#2c3e50',
     render: {
       antialias: false,
-      pixelArt: true,
+      pixelArt: true, 
       transparent: false,
       clearBeforeRender: true,
-      preserveDrawingBuffer: false
+      preserveDrawingBuffer: false,
+      powerPreference: 'default',
+      batchSize: 4096
+    },
+    fps: {
+      target: 60,
+      forceSetTimeOut: false
     },
     physics: {
       default: 'arcade',
@@ -270,13 +276,28 @@ setTimeout(() => {
             
             if (r === 0 && g === 0 && b === 0 && a === 0) {
               console.log('Phaser did not draw anything, canvas is empty');
-              // Try one more forced render
-              if (game.scene.scenes[1]) {
-                const gameScene = game.scene.scenes[1];
-                console.log('Attempting to wake up game scene...');
-                gameScene.scene.wake();
-                gameScene.scene.setVisible(true);
-              }
+              
+              // Try to manually trigger rendering
+              setTimeout(() => {
+                console.log('Attempting manual canvas draw to test...');
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                  // Clear and draw background
+                  ctx.fillStyle = '#2c3e50';
+                  ctx.fillRect(0, 0, 800, 600);
+                  
+                  // Draw ground manually at the same position as Phaser
+                  ctx.fillStyle = '#2b2f45';  
+                  ctx.fillRect(0, 560, 800, 80);
+                  
+                  // Draw player manually
+                  ctx.fillStyle = '#4bc0ff';
+                  ctx.fillRect(90, 504, 32, 32);
+                  
+                  console.log('Manual drawing completed - this proves canvas works');
+                }
+              }, 1000);
+              
             } else {
               console.log('Phaser successfully rendered to canvas!');
             }
