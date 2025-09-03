@@ -4,6 +4,7 @@ import type { GameDSL } from '../dsl/schema';
 import { getDSL, applyDslPatch, isDSLInitialized } from '../game/dslRuntime';
 import { sfx } from '../audio/sfx';
 import { getAbKey } from '../runtime/ab';
+import { getSpecLoadResult } from '../game/main';
 
 interface InspectorProps {
   visible: boolean;
@@ -14,6 +15,7 @@ export function Inspector({ visible }: InspectorProps) {
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [audioState, setAudioState] = useState(sfx.getState());
   const ab = getAbKey();
+  const specResult = getSpecLoadResult();
 
   useEffect(() => {
     // DSLが初期化されるまで待つ
@@ -90,6 +92,10 @@ export function Inspector({ visible }: InspectorProps) {
     }
   };
 
+  const reloadSpec = () => {
+    window.location.reload();
+  };
+
   if (!visible || !dsl) return null;
 
   return (
@@ -108,6 +114,41 @@ export function Inspector({ visible }: InspectorProps) {
       border: '1px solid rgba(255, 255, 255, 0.3)'
     }}>
       <div style={{ marginBottom: 12, fontWeight: 'bold' }}>Game Inspector</div>
+      
+      {/* Spec Load Status */}
+      {specResult && (
+        <div style={{ 
+          marginBottom: 12, 
+          padding: 8, 
+          backgroundColor: specResult.validation.success ? 'rgba(0, 128, 0, 0.3)' : 'rgba(255, 165, 0, 0.3)',
+          borderRadius: 4,
+          fontSize: 10
+        }}>
+          <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
+            Spec Status: {specResult.source === 'remote' ? '✅ Loaded' : 
+                         specResult.source === 'local' ? '🏠 Local' : '⚠️ Fallback'}
+          </div>
+          {!specResult.validation.success && (
+            <div style={{ color: '#ffcc00', marginBottom: 4, fontSize: 9 }}>
+              {specResult.validation.error}
+            </div>
+          )}
+          <button
+            onClick={reloadSpec}
+            style={{
+              padding: '2px 6px',
+              fontSize: 9,
+              backgroundColor: '#17a2b8',
+              color: 'white',
+              border: 'none',
+              borderRadius: 3,
+              cursor: 'pointer'
+            }}
+          >
+            Reload Spec
+          </button>
+        </div>
+      )}
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <label>
