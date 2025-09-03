@@ -119,12 +119,19 @@ await handleReplay();
 
 const createConfig = (): Types.Core.GameConfig => {
   const currentDsl = getDSL();
+  
+  // Ensure parent element exists
+  const gameRoot = document.getElementById('game-root');
+  console.log('Creating Phaser config. Parent element:', gameRoot);
+  
   return {
-    type: Phaser.AUTO,
+    type: Phaser.CANVAS, // Force canvas instead of AUTO
     width: 800,
     height: 600,
     parent: 'game-root',
     backgroundColor: '#2c3e50',
+    canvas: null, // Let Phaser create the canvas
+    canvasStyle: 'border: 5px solid #ff0000; display: block;',
     physics: {
       default: 'arcade',
       arcade: {
@@ -136,9 +143,23 @@ const createConfig = (): Types.Core.GameConfig => {
   };
 };
 
-const config = createConfig();
+// Wait for DOM to be ready before creating game
+function createGameInstance() {
+  console.log('Creating game instance...');
+  const config = createConfig();
+  const game = new Game(config);
+  
+  // Additional debug
+  setTimeout(() => {
+    console.log('Game object:', game);
+    console.log('Game canvas:', game.canvas);
+    console.log('Game context:', game.context);
+  }, 500);
+  
+  return game;
+}
 
-export const game = new Game(config);
+export const game = createGameInstance();
 
 // Debug canvas creation
 setTimeout(() => {
