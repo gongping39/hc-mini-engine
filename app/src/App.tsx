@@ -7,8 +7,8 @@ function App() {
   const [inspectorVisible, setInspectorVisible] = useState(true);
 
   useEffect(() => {
-    // Prime audio for mobile unlock
-    sfx.prime();
+    // Don't prime audio immediately - wait for user interaction
+    // sfx.prime();
 
     // Import and initialize game
     import('./game/main');
@@ -35,6 +35,10 @@ function App() {
             border: '5px solid #ff0000',
             display: 'block',
             backgroundColor: '#2c3e50'
+          }}
+          onClick={() => {
+            // Initialize audio on first user interaction
+            sfx.prime();
           }}
         >
           Your browser does not support the canvas element.
