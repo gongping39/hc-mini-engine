@@ -26,7 +26,20 @@ function App() {
 
   return (
     <>
-      <div id="game-root"></div>
+      <div id="game-root">
+        <canvas 
+          id="game-canvas" 
+          width="800" 
+          height="600" 
+          style={{
+            border: '5px solid #ff0000',
+            display: 'block',
+            backgroundColor: '#2c3e50'
+          }}
+        >
+          Your browser does not support the canvas element.
+        </canvas>
+      </div>
       <Inspector visible={inspectorVisible} />
     </>
   );

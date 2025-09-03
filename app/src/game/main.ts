@@ -125,12 +125,11 @@ const createConfig = (): Types.Core.GameConfig => {
   console.log('Creating Phaser config. Parent element:', gameRoot);
   
   return {
-    type: Phaser.CANVAS, // Force canvas instead of AUTO
+    type: Phaser.CANVAS,
     width: 800,
     height: 600,
-    parent: 'game-root',
+    canvas: document.getElementById('game-canvas') as HTMLCanvasElement,
     backgroundColor: '#2c3e50',
-    canvasStyle: 'border: 5px solid #ff0000 !important; display: block !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 1001 !important;',
     physics: {
       default: 'arcade',
       arcade: {
