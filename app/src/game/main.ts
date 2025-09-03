@@ -287,12 +287,16 @@ setTimeout(() => {
                   ctx.fillRect(0, 0, 800, 600);
                   
                   // Draw ground manually at the same position as Phaser
+                  const groundY = 600 - 80/2; // Same calculation as GameScene
                   ctx.fillStyle = '#2b2f45';  
-                  ctx.fillRect(0, 560, 800, 80);
+                  ctx.fillRect(0, groundY - 80/2, 800, 80);
                   
-                  // Draw player manually
+                  // Draw player manually at the same position as Phaser
+                  const playerY = groundY - 80/2 - 32/2;
                   ctx.fillStyle = '#4bc0ff';
-                  ctx.fillRect(90, 504, 32, 32);
+                  ctx.fillRect(90, playerY, 32, 32);
+                  
+                  console.log('Manual drawing - Ground Y:', groundY, 'Player Y:', playerY);
                   
                   console.log('Manual drawing completed - this proves canvas works');
                 }
