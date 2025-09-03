@@ -104,6 +104,12 @@ export class GameScene extends Scene {
       console.log('Physics enabled:', !!this.physics.world);
       console.log('Input enabled:', !!this.input.keyboard);
       console.log('Spawn event active:', !!this.spawnEvent && this.spawnEvent.getProgress() >= 0);
+      
+      // Force render this scene
+      console.log('Forcing scene render...');
+      this.cameras.main.setBackgroundColor('#2c3e50');
+      this.scene.setVisible(true);
+      this.scene.setActive(true);
     }, 100);
   }
 

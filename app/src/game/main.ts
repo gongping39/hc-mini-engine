@@ -280,8 +280,21 @@ setTimeout(() => {
             console.log('Ground area pixel:', r, g, b, a);
             
             if (r === 0 && g === 0 && b === 0 && a === 0) {
-              console.log('Phaser did not draw anything, canvas is empty');
-              console.log('This should not happen anymore - investigating...');
+              console.log('Phaser did not draw anything, forcing manual render...');
+              
+              // Force Phaser to render by manually calling the render loop
+              if (game && game.renderer && game.scene.scenes[1]) {
+                console.log('Forcing Phaser render manually...');
+                const gameScene = game.scene.scenes[1];
+                
+                // Wake up the scene and make it visible
+                gameScene.scene.wake();
+                gameScene.scene.setVisible(true);
+                gameScene.scene.setActive(true);
+                
+                // Force a render step
+                game.step(performance.now(), 16);
+              }
             } else {
               console.log('Phaser successfully rendered to canvas!');
             }
