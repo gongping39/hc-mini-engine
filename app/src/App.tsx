@@ -45,7 +45,7 @@ function App() {
           width="800" 
           height="600" 
           style={{
-            border: '5px solid #ff0000',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
             display: 'block',
             backgroundColor: '#2c3e50'
           }}

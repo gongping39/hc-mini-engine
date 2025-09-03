@@ -94,13 +94,16 @@ export class GameScene extends Scene {
     // Add cleanup event
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { void this._telemetry.flush("end"); });
 
-    // Debug: Check if objects are visible
+    // Debug: Check if objects are visible and game is functional
     setTimeout(() => {
       console.log('GameScene objects check:');
       console.log('Ground visible:', this.ground.visible, 'alpha:', this.ground.alpha);
       console.log('Player visible:', this.player.visible, 'alpha:', this.player.alpha);
       console.log('Scene children count:', this.children.list.length);
       console.log('Scene camera:', this.cameras.main.x, this.cameras.main.y, this.cameras.main.zoom);
+      console.log('Physics enabled:', !!this.physics.world);
+      console.log('Input enabled:', !!this.input.keyboard);
+      console.log('Spawn event active:', !!this.spawnEvent && this.spawnEvent.getProgress() >= 0);
     }, 100);
   }
 
