@@ -156,10 +156,14 @@ function createGameInstance() {
     console.log('Game scale:', game.scale);
     console.log('Active scenes:', game.scene.scenes);
     
-    // Force a render
-    if (game.renderer && game.scene.scenes[0]) {
-      console.log('Forcing render...');
-      // game.renderer.render(game.scene.scenes[0]); // This might have wrong signature
+    // Force scene updates and rendering
+    if (game.scene.scenes[0]) {
+      console.log('Forcing scene render...');
+      const scene = game.scene.scenes[0];
+      console.log('Active scene:', scene.scene.key, 'isActive:', scene.scene.isActive());
+      
+      // Try to force a scene update/render
+      scene.sys.game.loop.step(performance.now());
     }
   }, 500);
   
@@ -177,16 +181,15 @@ setTimeout(() => {
   console.log('Canvas dimensions:', canvas?.width, 'x', canvas?.height);
   console.log('Canvas style:', canvas?.style.cssText);
   
-  // Test direct canvas drawing
+  // Test direct canvas drawing (but don't interfere with Phaser)
   if (canvas) {
+    console.log('Canvas found! Dimensions:', canvas.width, 'x', canvas.height);
+    console.log('Canvas context available:', !!canvas.getContext('2d'));
+    
+    // Clear any existing content first
     const ctx = canvas.getContext('2d');
     if (ctx) {
-      console.log('Drawing test rectangle on canvas...');
-      ctx.fillStyle = '#00ff00';
-      ctx.fillRect(10, 10, 100, 50);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '20px Arial';
-      ctx.fillText('TEST', 20, 40);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
   }
 }, 1000);
