@@ -124,8 +124,23 @@ const createConfig = (): Types.Core.GameConfig => {
   const gameRoot = document.getElementById('game-root');
   console.log('Creating Phaser config. Parent element:', gameRoot);
   
-  const existingCanvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  // Try multiple methods to find the canvas
+  let existingCanvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  
+  if (!existingCanvas) {
+    console.log('getElementById failed, trying querySelector...');
+    existingCanvas = document.querySelector('#game-canvas') as HTMLCanvasElement;
+  }
+  
+  if (!existingCanvas) {
+    console.log('querySelector failed, trying canvas tag selector...');
+    existingCanvas = document.querySelector('canvas[id="game-canvas"]') as HTMLCanvasElement;
+  }
+  
   console.log('Using existing canvas:', !!existingCanvas);
+  if (existingCanvas) {
+    console.log('Found canvas with dimensions:', existingCanvas.width, 'x', existingCanvas.height);
+  }
   
   return {
     type: Phaser.CANVAS,

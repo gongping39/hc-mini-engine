@@ -23,7 +23,7 @@ function App() {
       }
     };
     
-    setTimeout(initGame, 100);
+    setTimeout(initGame, 500);
 
     // Handle 'I' key toggle
     const handleKeyDown = (event: KeyboardEvent) => {
