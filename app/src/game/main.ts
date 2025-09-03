@@ -140,6 +140,16 @@ const config = createConfig();
 
 export const game = new Game(config);
 
+// Debug canvas creation
+setTimeout(() => {
+  const gameRoot = document.getElementById('game-root');
+  const canvas = gameRoot?.querySelector('canvas');
+  console.log('Game root element:', gameRoot);
+  console.log('Canvas element:', canvas);
+  console.log('Canvas dimensions:', canvas?.width, 'x', canvas?.height);
+  console.log('Canvas style:', canvas?.style.cssText);
+}, 1000);
+
 // Register game instance for runtime DSL updates
 setGameInstance(game);
 console.log('Game instance registered for DSL updates');
