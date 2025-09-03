@@ -124,11 +124,15 @@ const createConfig = (): Types.Core.GameConfig => {
   const gameRoot = document.getElementById('game-root');
   console.log('Creating Phaser config. Parent element:', gameRoot);
   
+  const existingCanvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  console.log('Using existing canvas:', !!existingCanvas);
+  
   return {
     type: Phaser.CANVAS,
     width: 800,
     height: 600,
-    canvas: document.getElementById('game-canvas') as HTMLCanvasElement,
+    parent: existingCanvas ? undefined : 'game-root',
+    canvas: existingCanvas || undefined,
     backgroundColor: '#2c3e50',
     render: {
       antialias: false,
@@ -225,6 +229,33 @@ setTimeout(() => {
         } catch (error) {
           console.log('Game step error:', error);
         }
+        
+        // Add manual test drawing to compare with Phaser
+        setTimeout(() => {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            console.log('Drawing manual test objects for comparison...');
+            // Clear canvas first
+            ctx.clearRect(0, 0, 800, 600);
+            
+            // Draw background
+            ctx.fillStyle = '#2c3e50';
+            ctx.fillRect(0, 0, 800, 600);
+            
+            // Draw ground (gray)
+            ctx.fillStyle = '#2b2f45';
+            ctx.fillRect(0, 560, 800, 80);
+            
+            // Draw player (blue)
+            ctx.fillStyle = '#4bc0ff';
+            ctx.fillRect(90, 504, 32, 32);
+            
+            // Add text overlay
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '16px Arial';
+            ctx.fillText('Manual Drawing - Phaser not working', 10, 30);
+          }
+        }, 2000);
       }
     }, 1500);
   }
