@@ -158,9 +158,9 @@ function createGameInstance() {
     console.log('Active scenes:', game.scene.scenes);
     
     // Force a render
-    if (game.renderer) {
+    if (game.renderer && game.scene.scenes[0]) {
       console.log('Forcing render...');
-      game.renderer.render(game.scene.scenes[0]);
+      // game.renderer.render(game.scene.scenes[0]); // This might have wrong signature
     }
   }, 500);
   
