@@ -130,7 +130,7 @@ const createConfig = (): Types.Core.GameConfig => {
     height: 600,
     parent: 'game-root',
     backgroundColor: '#2c3e50',
-    canvasStyle: 'border: 5px solid #ff0000; display: block;',
+    canvasStyle: 'border: 5px solid #ff0000 !important; display: block !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 1001 !important;',
     physics: {
       default: 'arcade',
       arcade: {

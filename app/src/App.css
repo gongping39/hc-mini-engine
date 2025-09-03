@@ -16,17 +16,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1000;
 }
 
-/* Game canvas styling for responsive centering */
-#game-root > canvas {
+/* Game canvas styling for responsive centering */  
+#game-root canvas {
   border: 5px solid #ff0000 !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  z-index: 9999 !important;
-  width: 800px !important;
-  height: 600px !important;
+  position: relative !important;
+  z-index: 1001 !important;
 }
 
 
